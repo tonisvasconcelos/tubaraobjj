@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 const BackgroundVideo = () => {
   const baseUrl = import.meta.env.BASE_URL
   const [reduceMotion, setReduceMotion] = useState(false)
-  const backgroundImage = `${baseUrl}images/ChatGPT%20Image%209%20de%20ago.%20de%202025,%2016_00_02.png`
   const backgroundVideo = `${baseUrl}videos/background.mp4`
 
   useEffect(() => {
@@ -24,10 +23,10 @@ const BackgroundVideo = () => {
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
-      {/* Always-visible background image (safe for GitHub Pages repo size limits) */}
+      {/* Always-visible fallback background (no logo while video buffers) */}
+      <div className="absolute inset-0 bg-slate-950" aria-hidden="true" />
       <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.10),rgba(2,6,23,0)_55%)]"
         aria-hidden="true"
       />
 
@@ -39,7 +38,6 @@ const BackgroundVideo = () => {
           loop
           playsInline
           preload="metadata"
-          poster={backgroundImage}
           aria-hidden="true"
         >
           <source src={backgroundVideo} type="video/mp4" />
