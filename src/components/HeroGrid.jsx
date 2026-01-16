@@ -5,11 +5,11 @@ const HeroGrid = () => {
   const baseUrl = import.meta.env.BASE_URL
   const [heroCards, setHeroCards] = useState([
     {
-      id: 1,
-      title: 'loja',
-      description: 'Descubra nossos programas de Jiu-Jitsu para adultos e crianças, além de treinamento funcional.',
-      backgroundImage: `${baseUrl}images/ChatGPT%20Image%2016%20de%20jan.%20de%202026,%2013_52_44.png`,
-      link: '#modalidades',
+      id: 3,
+      title: 'equipe',
+      description: 'Conheça o Professor Márcio "Tubarão" e nossa equipe de instrutores dedicados.',
+      backgroundImage: `${baseUrl}images/WhatsApp%20Image%202025-03-31%20at%2019.28.50_60c70bff.jpg`,
+      link: '#equipe',
     },
     {
       id: 2,
@@ -19,11 +19,11 @@ const HeroGrid = () => {
       link: '#horarios',
     },
     {
-      id: 3,
-      title: 'equipe',
-      description: 'Conheça o Professor Márcio "Tubarão" e nossa equipe de instrutores dedicados.',
-      backgroundImage: `${baseUrl}images/WhatsApp%20Image%202025-03-31%20at%2019.28.50_60c70bff.jpg`,
-      link: '#equipe',
+      id: 1,
+      title: 'loja',
+      description: 'Descubra nossos programas de Jiu-Jitsu para adultos e crianças, além de treinamento funcional.',
+      backgroundImage: `${baseUrl}images/ChatGPT%20Image%2016%20de%20jan.%20de%202026,%2013_52_44.png`,
+      link: '#modalidades',
     },
   ])
 
