@@ -4,6 +4,7 @@ const BackgroundVideo = () => {
   const baseUrl = import.meta.env.BASE_URL
   const [reduceMotion, setReduceMotion] = useState(false)
   const backgroundImage = `${baseUrl}images/ChatGPT%20Image%209%20de%20ago.%20de%202025,%2016_00_02.png`
+  const backgroundVideo = `${baseUrl}videos/background.mp4`
 
   useEffect(() => {
     const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
@@ -38,9 +39,10 @@ const BackgroundVideo = () => {
           loop
           playsInline
           preload="metadata"
+          poster={backgroundImage}
           aria-hidden="true"
         >
-          {/* Video disabled for now (files too large for standard GitHub pushes). */}
+          <source src={backgroundVideo} type="video/mp4" />
         </video>
       )}
 

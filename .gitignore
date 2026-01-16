@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 *.mp4
+!public/videos/background.mp4
 
 # Editor directories and files
 .vscode/*
