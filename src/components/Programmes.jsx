@@ -3,31 +3,31 @@ const Programmes = () => {
   const programmes = [
     {
       id: 1,
-      title: 'Jiu-Jitsu Adulto',
-      description: 'Treinamento completo de Jiu-Jitsu para adultos de todos os níveis, desde iniciantes até atletas avançados.',
+      title: 'Jiu-Jitsu Adulto Unissex',
+      description: 'Aulas para adultos de todas as idades, sem limite etário, com turmas unissex para iniciantes e graduados.',
       image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
-      alt: 'Treino de Jiu-Jitsu Adulto',
+      alt: 'Treino de Jiu-Jitsu adulto unissex',
     },
     {
       id: 2,
-      title: 'Jiu-Jitsu Kids',
-      description: 'Programa especializado para crianças, desenvolvendo habilidades físicas, disciplina e valores através do Jiu-Jitsu.',
+      title: 'Jiu-Jitsu Gi e No Gi',
+      description: 'Treinos técnicos com kimono (Gi) e sem kimono (No Gi), desenvolvendo adaptação, estratégia e performance.',
       image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
-      alt: 'Aula de Jiu-Jitsu Kids',
+      alt: 'Treino de Jiu-Jitsu Gi e No Gi',
     },
     {
       id: 3,
-      title: 'Condicionamento Funcional',
-      description: 'Treinamento funcional para melhorar força, resistência e condicionamento físico geral.',
+      title: 'Jiu-Jitsu Feminino',
+      description: 'Aulas exclusivas para mulheres, em um ambiente acolhedor e seguro, focado em técnica, confiança e evolução.',
       image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
-      alt: 'Treino de Condicionamento Funcional',
+      alt: 'Aula de Jiu-Jitsu feminino',
     },
     {
       id: 4,
-      title: 'Programas para Iniciantes',
-      description: 'Aulas introdutórias para quem está começando no Jiu-Jitsu, com foco em fundamentos e técnicas básicas.',
+      title: 'Jiu-Jitsu Baby e Juvenil',
+      description: 'Programa para crianças e jovens com foco em coordenação, disciplina, respeito e desenvolvimento técnico no Jiu-Jitsu.',
       image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
-      alt: 'Aula de fundamentos para iniciantes no Jiu-Jitsu',
+      alt: 'Aula de Jiu-Jitsu Baby e Juvenil',
     },
   ]
 
