@@ -6,7 +6,7 @@ const AboutSection = () => {
     description: 'A GFTeam Tubarão é uma academia de Jiu-Jitsu dedicada a proporcionar uma experiência completa de treinamento para alunos de todas as idades e níveis. Nossa missão é desenvolver não apenas habilidades técnicas, mas também valores como disciplina, respeito e superação pessoal.',
     gfteamAffiliation: 'Fazemos parte da rede GFTeam, uma das maiores e mais respeitadas equipes de Jiu-Jitsu do mundo, garantindo metodologia de ensino de excelência e suporte técnico de alto nível.',
     // NOTE: Replace/rename this file later if desired (spaces are OK in public path)
-    professorImage: `${baseUrl}images/MARCIO%20TUBARAO(1).jpg`,
+    professorImage: `${baseUrl}images/TubaDesert.JPG`,
   }
 
   return (
