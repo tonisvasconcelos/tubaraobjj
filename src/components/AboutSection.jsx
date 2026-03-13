@@ -16,24 +16,24 @@ const AboutSection = () => {
           <img
             src={aboutData.professorImage}
             alt={aboutData.quoteAuthor}
-            className="h-[420px] sm:h-[480px] lg:h-[540px] w-full object-cover"
+            className="h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full object-cover"
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/1400x800/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'
             }}
           />
 
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-transparent" />
+          <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-transparent" />
 
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full max-w-2xl px-5 sm:px-8 lg:px-10">
-              <blockquote className="text-xl sm:text-2xl lg:text-4xl font-semibold italic text-white leading-relaxed">
+          <div className="relative md:absolute md:inset-0 md:flex md:items-center">
+            <div className="w-full max-w-2xl bg-black/70 p-5 text-white sm:p-6 md:bg-transparent md:px-8 md:py-0 lg:px-10">
+              <blockquote className="text-lg sm:text-xl md:text-2xl lg:text-4xl font-semibold italic leading-relaxed">
                 "{aboutData.quote}"
               </blockquote>
-              <p className="mt-4 text-sm sm:text-base lg:text-lg text-white/85 font-medium">
+              <p className="mt-3 text-xs sm:text-sm md:text-base lg:text-lg text-white/85 font-medium">
                 — {aboutData.quoteAuthor}
               </p>
 
-              <div className="mt-5 space-y-4 text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed">
+              <div className="mt-4 space-y-3 text-xs sm:text-sm md:text-base lg:text-lg text-white/90 leading-relaxed">
                 <p>{aboutData.description}</p>
                 <p>{aboutData.gfteamAffiliation}</p>
               </div>
