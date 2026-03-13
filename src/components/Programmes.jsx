@@ -43,11 +43,11 @@ const Programmes = () => {
               key={programme.id}
               className="h-full overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-white/60"
             >
-              <div className="relative h-52 sm:h-56 lg:h-64 bg-slate-100">
+              <div className="relative h-52 sm:h-56 lg:h-64">
                 <img
                   src={programme.image}
                   alt={programme.alt}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105 lg:object-contain lg:hover:scale-100"
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                   loading="lazy"
                 />
               </div>
