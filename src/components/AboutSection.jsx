@@ -12,35 +12,31 @@ const AboutSection = () => {
   return (
     <section id="quem-somos" className="py-12 sm:py-16 lg:py-24 bg-white/55 backdrop-blur-[2px]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left Column - Quote and Description */}
-          <div className="space-y-6">
-            {/* Quote */}
-            <blockquote className="text-xl sm:text-2xl lg:text-3xl font-semibold italic text-slate-900 leading-relaxed">
-              "{aboutData.quote}"
-            </blockquote>
-            <p className="text-sm sm:text-base lg:text-lg text-slate-500 font-medium">
-              — {aboutData.quoteAuthor}
-            </p>
+        <div className="relative overflow-hidden rounded-2xl border border-white/50 shadow-xl">
+          <img
+            src={aboutData.professorImage}
+            alt={aboutData.quoteAuthor}
+            className="h-[420px] sm:h-[480px] lg:h-[540px] w-full object-cover"
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/1400x800/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'
+            }}
+          />
 
-            {/* Description */}
-            <div className="space-y-4 text-base sm:text-lg lg:text-xl text-slate-700">
-              <p>{aboutData.description}</p>
-              <p>{aboutData.gfteamAffiliation}</p>
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-transparent" />
 
-          {/* Right Column - Professor Image */}
-          <div className="relative">
-            <div className="aspect-[3/4] w-full max-w-md mx-auto lg:max-w-full rounded-2xl border border-slate-200 shadow-lg overflow-hidden bg-slate-100">
-              <img
-                src={aboutData.professorImage}
-                alt={aboutData.quoteAuthor}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/400x600/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'
-                }}
-              />
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full max-w-2xl px-5 sm:px-8 lg:px-10">
+              <blockquote className="text-xl sm:text-2xl lg:text-4xl font-semibold italic text-white leading-relaxed">
+                "{aboutData.quote}"
+              </blockquote>
+              <p className="mt-4 text-sm sm:text-base lg:text-lg text-white/85 font-medium">
+                — {aboutData.quoteAuthor}
+              </p>
+
+              <div className="mt-5 space-y-4 text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed">
+                <p>{aboutData.description}</p>
+                <p>{aboutData.gfteamAffiliation}</p>
+              </div>
             </div>
           </div>
         </div>
