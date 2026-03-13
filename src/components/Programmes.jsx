@@ -12,14 +12,14 @@ const Programmes = () => {
       id: 2,
       title: 'Jiu-Jitsu Gi e No Gi',
       description: 'Treinos técnicos com kimono (Gi) e sem kimono (No Gi), desenvolvendo adaptação, estratégia e performance.',
-      image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      image: `${baseUrl}images/Nogi.PNG`,
       alt: 'Treino de Jiu-Jitsu Gi e No Gi',
     },
     {
       id: 3,
       title: 'Jiu-Jitsu Feminino',
       description: 'Aulas exclusivas para mulheres, em um ambiente acolhedor e seguro, focado em técnica, confiança e evolução.',
-      image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      image: `${baseUrl}images/TubaFemTurma.JPG`,
       alt: 'Aula de Jiu-Jitsu feminino',
     },
     {
