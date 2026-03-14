@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import cors from 'cors'
+import pool from './db/pool.js'
 import authRoutes from './routes/auth.js'
 import publicRoutes from './routes/public.js'
 import adminRoutes from './routes/admin.js'
@@ -29,6 +30,16 @@ app.use('/api/admin', adminRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true })
+})
+
+app.get('/api/health/db', async (req, res) => {
+  try {
+    await pool.query('SELECT 1')
+    res.json({ ok: true, db: 'ok' })
+  } catch (e) {
+    console.error('Health DB check failed:', e)
+    res.status(500).json({ ok: false, db: 'error' })
+  }
 })
 
 app.use((err, req, res, next) => {

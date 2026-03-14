@@ -131,6 +131,21 @@ The repo has a workflow `.github/workflows/deploy.yml` that deploys to **GitHub 
 ## 9. Quick verification
 
 - **API:** https://api-production-a236.up.railway.app/api/health → `{"ok":true}`
+- **DB from API:** https://api-production-a236.up.railway.app/api/health/db → `{"ok":true,"db":"ok"}` (if this returns 500, the backend cannot reach Neon)
 - **Login:** POST to https://api-production-a236.up.railway.app/api/auth/login with `{"email":"admin@tubaraobjj.com","password":"TubaraoAdmin2026"}` → `{ "token", "user" }`
 - **Site:** https://tubaraobjj-website.vercel.app
 - **Admin:** https://tubaraobjj-website.vercel.app/admin (login with the credentials above)
+
+---
+
+## 10. Admin login returns 500 (“Erro no servidor”)
+
+If the admin login shows “Erro no servidor” and the browser shows 500 on `/api/auth/login`:
+
+1. **Check DB from Railway:** Open `https://api-production-a236.up.railway.app/api/health/db`.  
+   - If it returns **500** or `{"ok":false,"db":"error"}`: the API cannot reach Neon. Check Railway → api → Variables: `DATABASE_URL` must be the full Neon connection string (with pooler host and password). In Neon dashboard, ensure the project is not paused and “Restrict connections” / IP allowlist does not block Railway.  
+   - If it returns **200** and `{"ok":true,"db":"ok"}`: the DB is fine; the 500 is likely in auth logic (e.g. missing `admin_users` or bcrypt).
+
+2. **Check Railway logs:** Railway → api → Deployments → select latest → **View logs**. On failed login you should see `[auth/login]` plus the real error (e.g. connection timeout, “relation admin_users does not exist”, etc.). Fix that (env, migrations, or Neon settings).
+
+3. **Backend changes applied:** The pool is configured with SSL for Neon (`neon.tech` in `DATABASE_URL`) and a longer connection timeout; `/api/health/db` was added to test DB connectivity from the API.

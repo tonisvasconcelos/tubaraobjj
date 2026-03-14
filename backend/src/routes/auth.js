@@ -32,7 +32,7 @@ router.post(
       const token = signToken({ id: user.id, email: user.email })
       return res.json({ token, user: { id: user.id, email: user.email } })
     } catch (e) {
-      console.error(e)
+      console.error('[auth/login]', e?.message || e)
       return res.status(500).json({ error: 'Erro no servidor' })
     }
   }
