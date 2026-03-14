@@ -1,0 +1,77 @@
+import { useState, useEffect } from 'react'
+import { getGallery } from '../services/publicApi'
+
+const CATEGORY_LABELS = { training: 'Treino', competition: 'Competição', event: 'Evento' }
+
+export default function GalleryPage() {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('all')
+
+  useEffect(() => {
+    getGallery()
+      .then(setItems)
+      .catch(() => setItems([]))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = filter === 'all' ? items : items.filter((i) => i.category === filter)
+
+  return (
+    <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-8">
+          Galeria
+        </h1>
+        {loading ? (
+          <p className="text-center text-slate-600">Carregando...</p>
+        ) : items.length === 0 ? (
+          <p className="text-center text-slate-600 max-w-2xl mx-auto">
+            Fotos de treinos, competições e eventos. Em breve.
+          </p>
+        ) : (
+          <>
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              <button
+                type="button"
+                onClick={() => setFilter('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'all' ? 'bg-slate-900 text-white' : 'bg-white/60 text-slate-700 hover:bg-white/80'}`}
+              >
+                Todas
+              </button>
+              {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilter(value)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === value ? 'bg-slate-900 text-white' : 'bg-white/60 text-slate-700 hover:bg-white/80'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+              {filtered.map((item) => (
+                <div
+                  key={item.id}
+                  className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <img
+                    src={item.image_url}
+                    alt={item.title || 'Galeria'}
+                    className="w-full h-full object-cover"
+                  />
+                  {item.title && (
+                    <p className="absolute bottom-0 left-0 right-0 p-2 bg-black/60 text-white text-sm truncate">
+                      {item.title}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}

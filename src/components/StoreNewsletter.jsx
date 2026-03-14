@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ShoppingBag, ArrowRight } from 'lucide-react'
 
 const StoreNewsletter = () => {
@@ -42,7 +43,7 @@ const StoreNewsletter = () => {
   const storeData = {
     title: 'Loja Tubarão',
     description: 'Confira nossa linha de produtos exclusivos da GFTeam Tubarão. Roupas, equipamentos e acessórios de alta qualidade.',
-    link: '#loja',
+    path: '/store',
   }
 
   return (
@@ -62,19 +63,13 @@ const StoreNewsletter = () => {
             <p className="text-sm sm:text-base lg:text-lg mb-6 sm:mb-8 text-gray-300 leading-relaxed">
               {storeData.description}
             </p>
-            <button
-              onClick={(e) => {
-                e.preventDefault()
-                const element = document.querySelector(storeData.link)
-                if (element) {
-                  element.scrollIntoView({ behavior: 'smooth' })
-                }
-              }}
-              className="flex items-center space-x-2 bg-white hover:bg-slate-100 text-slate-900 font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+            <Link
+              to={storeData.path}
+              className="inline-flex items-center space-x-2 bg-white hover:bg-slate-100 text-slate-900 font-semibold px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <span>Visitar Loja</span>
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
 
           {/* Newsletter Form */}

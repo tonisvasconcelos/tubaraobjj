@@ -1,261 +1,136 @@
 # GFTeam Tubarão - Website React
 
-Website responsivo para a academia de Jiu-Jitsu GFTeam Tubarão, localizada em Vila Isabel, Rio de Janeiro.
+Website responsivo para a academia de Jiu-Jitsu GFTeam Tubarão (Vila Isabel e Tijuca, Rio de Janeiro), com portal admin para gestão de conteúdo.
 
 ## Tecnologias
 
-- **React 18** com Vite
+- **React 18** + Vite + React Router
 - **Tailwind CSS** para estilização
-- **Strapi CMS** para gerenciamento de conteúdo
+- **Backend Node/Express** (pasta `backend/`) com PostgreSQL, JWT e upload de imagens
 - **Swiper** para carrossel de destaques
 - **Lucide React** para ícones
-- **Axios** para chamadas à API
 
-## Estrutura do Projeto
+## Estrutura
 
 ```
 TubaraoBJJWebsiteREACT/
 ├── public/
-│   └── images/          # Imagens estáticas (logos, placeholders)
 ├── src/
-│   ├── components/      # Componentes React
-│   ├── services/        # API client para Strapi
-│   ├── hooks/          # Custom hooks
-│   ├── App.jsx         # Componente principal
-│   ├── main.jsx        # Entry point
-│   └── index.css       # Estilos globais
+│   ├── components/     # Header, Footer, HeroGrid, etc.
+│   ├── contexts/      # AuthContext (admin)
+│   ├── layouts/       # MainLayout
+│   ├── pages/         # HomePage, TeamPage, AddressesPage, StorePage, GalleryPage, Admin
+│   ├── services/      # publicApi.js, adminApi.js
+│   └── App.jsx
+├── backend/
+│   ├── src/
+│   │   ├── db/        # pool, migrate, seed
+│   │   ├── middleware/
+│   │   └── routes/    # auth, public, admin
+│   └── package.json
+├── vercel.json        # SPA rewrite para deploy no Vercel
 └── package.json
 ```
 
 ## Instalação
 
-1. Instale as dependências:
+### Frontend
+
 ```bash
 npm install
-```
-
-2. Configure as variáveis de ambiente:
-```bash
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` e configure:
+Edite `.env`:
+
+- `VITE_API_URL` – URL do backend (ex.: `http://localhost:4000` em dev; em produção use a URL do Render/Railway).
+- `VITE_BASE_URL` – (opcional) Base do site: `/` para Vercel/Netlify na raiz; `/tubaraobjj/` para GitHub Pages.
+
+### Backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env
 ```
-VITE_STRAPI_API_URL=http://localhost:1337/api
-VITE_STRAPI_API_TOKEN=seu_token_aqui
+
+Edite `backend/.env`:
+
+- `DATABASE_URL` – connection string PostgreSQL
+- `JWT_SECRET` – string longa e aleatória
+- `ADMIN_EMAIL` e `ADMIN_PASSWORD` – credenciais do único usuário admin
+- `CORS_ORIGIN` – origem permitida (ex.: `https://seu-site.vercel.app`)
+- `API_PUBLIC_URL` – URL pública do backend (ex.: `https://tubarao-api.onrender.com`) para gerar URLs de imagens
+
+Crie o banco e as tabelas:
+
+```bash
+cd backend
+npm run db:migrate
+npm run db:seed
 ```
 
 ## Desenvolvimento
 
-Execute o servidor de desenvolvimento:
+Terminal 1 – backend:
+
+```bash
+cd backend && npm run dev
+```
+
+Terminal 2 – frontend:
+
 ```bash
 npm run dev
 ```
 
-O site estará disponível em `http://localhost:5173`
+- Site: `http://localhost:5173`
+- Admin: `http://localhost:5173/admin` (use o email/senha do seed)
+- API: `http://localhost:4000`
 
-## Build para Produção
+## Build
 
 ```bash
 npm run build
 ```
 
-Os arquivos serão gerados na pasta `dist/`
+Saída em `dist/`. Para Vercel, use `VITE_BASE_URL=/` nas variáveis de ambiente do projeto.
 
-## Configuração do Strapi CMS
+## Deploy
 
-### 1. Inicializar Strapi
+### Frontend (Vercel ou Netlify)
 
-Em um diretório separado, crie o projeto Strapi:
+1. Conecte o repositório ao Vercel (ou Netlify).
+2. Defina as variáveis de ambiente:
+   - `VITE_API_URL` = URL do backend em produção (ex.: `https://tubarao-bjj-api.onrender.com`)
+   - `VITE_BASE_URL` = `/` (para deploy na raiz)
+3. Build command: `npm run build`; output: `dist`.
 
-```bash
-npx create-strapi-app@latest strapi-backend --quickstart
-```
+O `vercel.json` já configura o rewrite para SPA (todas as rotas → `index.html`).
 
-### 2. Criar Content Types
+### Backend (Render ou Railway)
 
-No painel admin do Strapi (`http://localhost:1337/admin`), crie os seguintes Content Types:
+1. Crie um **Web Service** e um banco **PostgreSQL** (Render ou Railway).
+2. Repo: apontar para a pasta `backend` ou raiz (e definir start na pasta `backend`).
+3. Variáveis de ambiente:
+   - `DATABASE_URL` (fornecido pelo banco)
+   - `JWT_SECRET` (gerar um valor seguro)
+   - `ADMIN_EMAIL` e `ADMIN_PASSWORD`
+   - `CORS_ORIGIN` = URL do frontend (ex.: `https://tubaraobjj.vercel.app`)
+   - `API_PUBLIC_URL` = URL do próprio backend (ex.: `https://tubarao-bjj-api.onrender.com`)
+4. Build: `npm install`. Start: `node src/index.js` (ou `npm start`).
+5. Após o primeiro deploy, rode a migração e o seed (via CLI ou script no servidor) para criar tabelas e usuário admin.
 
-#### Company Info (Single Type)
-- `address` (Text)
-- `phone` (Text)
-- `email` (Email)
-- `instagramUrl` (Text)
-- `facebookUrl` (Text)
-- `logo` (Media - single image)
+## Rotas do site
 
-#### Hero Cards (Collection Type)
-- `title` (Text)
-- `description` (Text)
-- `backgroundImage` (Media - single image)
-- `link` (Text)
-- `order` (Number)
-- `isActive` (Boolean)
-
-#### About Section (Single Type)
-- `quote` (Text)
-- `quoteAuthor` (Text)
-- `description` (Rich Text)
-- `professorImage` (Media - single image)
-- `gfteamAffiliation` (Rich Text)
-
-#### Programmes (Collection Type)
-- `title` (Text)
-- `slug` (UID)
-- `description` (Rich Text)
-- `icon` (Text)
-- `image` (Media - single image, optional)
-- `order` (Number)
-- `isActive` (Boolean)
-
-#### Class Schedules (Collection Type)
-- `programme` (Relation - Programme)
-- `dayOfWeek` (Enumeration)
-- `startTime` (Time)
-- `endTime` (Time)
-- `instructor` (Text)
-- `level` (Enumeration)
-- `isActive` (Boolean)
-
-#### Team Members (Collection Type)
-- `name` (Text)
-- `role` (Text)
-- `bio` (Rich Text)
-- `photo` (Media - single image)
-- `order` (Number)
-- `isActive` (Boolean)
-
-#### Testimonials (Collection Type)
-- `type` (Enumeration)
-- `title` (Text)
-- `content` (Rich Text)
-- `image` (Media - single image)
-- `author` (Text)
-- `date` (Date)
-- `order` (Number)
-- `isActive` (Boolean)
-
-#### News (Collection Type)
-- `title` (Text)
-- `slug` (UID)
-- `content` (Rich Text)
-- `excerpt` (Text)
-- `featuredImage` (Media - single image)
-- `publishedAt` (DateTime)
-- `isPublished` (Boolean)
-
-#### Store Items (Collection Type)
-- `name` (Text)
-- `description` (Rich Text)
-- `price` (Decimal)
-- `image` (Media - single image)
-- `externalLink` (Text)
-- `isActive` (Boolean)
-
-#### Newsletter Subscriptions (Collection Type)
-- `name` (Text)
-- `email` (Email)
-- `phone` (Text, optional)
-- `subscribedAt` (DateTime)
-- `isActive` (Boolean)
-
-### 3. Configurar Permissões
-
-No Strapi Admin:
-1. Vá em Settings > Users & Permissions Plugin > Roles
-2. Selecione "Public"
-3. Marque "find" e "findOne" para todos os Content Types (exceto Newsletter Subscriptions)
-4. Para Newsletter Subscriptions, marque apenas "create"
-
-### 4. Configurar CORS
-
-No arquivo `config/middlewares.js` do Strapi:
-
-```javascript
-module.exports = [
-  'strapi::logger',
-  'strapi::errors',
-  {
-    name: 'strapi::security',
-    config: {
-      contentSecurityPolicy: {
-        useDefaults: true,
-        directives: {
-          'connect-src': ["'self'", 'https:'],
-          'img-src': ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
-          'media-src': ["'self'", 'data:', 'blob:', 'res.cloudinary.com'],
-          upgradeInsecureRequests: null,
-        },
-      },
-    },
-  },
-  {
-    name: 'strapi::cors',
-    config: {
-      enabled: true,
-      origin: ['http://localhost:5173', 'https://tubarao.com'], // Adicione seus domínios
-    },
-  },
-  'strapi::poweredBy',
-  'strapi::query',
-  'strapi::body',
-  'strapi::session',
-  'strapi::favicon',
-  'strapi::public',
-];
-```
-
-### 5. Configurar OAuth (Opcional)
-
-Para autenticação OAuth no admin panel:
-
-1. Instale o plugin de OAuth desejado
-2. Configure as credenciais no arquivo `.env` do Strapi
-3. Configure o subdomain `admin.tubarao.com` no servidor
-
-## Componentes
-
-### Header
-Navegação fixa com menu hambúrguer para mobile e navegação horizontal para desktop.
-
-### HeroGrid
-Três cards de call-to-action com imagens de fundo e overlay escuro.
-
-### AboutSection
-Seção sobre a academia com citação do professor e foto.
-
-### Programmes
-Grid de 4 cards mostrando as modalidades oferecidas.
-
-### JoinFamily
-Dois cards escuros para "Quero treinar" e "Quero competir".
-
-### HighlightsCarousel
-Carrossel Swiper para depoimentos, conquistas e eventos.
-
-### StoreNewsletter
-Card da loja e formulário de newsletter lado a lado.
-
-### Footer
-Rodapé com links, informações de contato, redes sociais e newsletter.
-
-## Design Responsivo
-
-O site é totalmente responsivo com breakpoints:
-- **Mobile**: < 640px
-- **Tablet**: 640px - 1023px
-- **Desktop**: ≥ 1024px
-
-## Imagens
-
-Adicione as imagens necessárias na pasta `public/images/`:
-- `hero-aulas.jpg`
-- `hero-horarios.jpg`
-- `hero-equipe.jpg`
-- `professor-marcio.jpg`
-- `logo-tubarao.png`
-- `logo-gfteam.png`
+- `/` – Home
+- `/team` – Equipe
+- `/addresses` – Unidades
+- `/store` – Loja (catálogo + CTA WhatsApp)
+- `/gallery` – Galeria
+- `/admin` – Login admin
+- `/admin/team`, `/admin/branches`, `/admin/products`, `/admin/gallery`, `/admin/contacts`, `/admin/highlights` – Gestão de conteúdo (após login)
 
 ## Licença
 
-Todos os direitos reservados GFTeam Tubarão
+Todos os direitos reservados GFTeam Tubarão.

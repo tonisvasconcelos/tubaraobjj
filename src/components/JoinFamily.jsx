@@ -9,13 +9,6 @@ const JoinFamily = () => {
       buttonText: 'Agendar aula experimental',
       link: '#contato',
     },
-    {
-      id: 2,
-      title: 'Quero competir',
-      description: 'Temos programas específicos para atletas que desejam competir. Treinamento focado em performance e resultados.',
-      buttonText: 'Saiba mais sobre competições',
-      link: '#contato',
-    },
   ]
 
   const handleButtonClick = (e, href) => {
@@ -29,7 +22,7 @@ const JoinFamily = () => {
   return (
     <section className="py-12 sm:py-16 lg:py-24 bg-white/45 backdrop-blur-[2px]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-6 max-w-2xl mx-auto">
           {cards.map((card) => (
             <div
               key={card.id}

@@ -1,10 +1,17 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react'
+import { submitContact } from '../services/publicApi'
 
 const Footer = () => {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' })
+  const [contactSubmitting, setContactSubmitting] = useState(false)
+  const [contactFeedback, setContactFeedback] = useState('')
+  const location = useLocation()
+  const isHome = location.pathname === '/' || location.pathname === ''
 
   const companyInfo = {
     address: 'Rua Teodoro da Silva 725, Vila Isabel – Rio de Janeiro',
@@ -15,18 +22,21 @@ const Footer = () => {
   }
 
   const quickLinks = [
-    { name: 'Quem Somos', href: '#quem-somos' },
-    { name: 'Modalidades', href: '#modalidades' },
-    { name: 'Horários', href: '#horarios' },
-    { name: 'Contato', href: '#contato' },
-    { name: 'Loja', href: '#loja' },
+    { name: 'Quem Somos', to: '/', hash: '#quem-somos' },
+    { name: 'Modalidades', to: '/', hash: '#modalidades' },
+    { name: 'Horários', to: '/', hash: '#horarios' },
+    { name: 'Equipe', to: '/team' },
+    { name: 'Unidades', to: '/addresses' },
+    { name: 'Loja', to: '/store' },
+    { name: 'Galeria', to: '/gallery' },
+    { name: 'Contato', to: '/', hash: '#contato' },
   ]
 
-  const handleLinkClick = (e, href) => {
-    e.preventDefault()
-    const element = document.querySelector(href)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+  const handleAnchorClick = (e, hash) => {
+    if (isHome && hash) {
+      e.preventDefault()
+      const element = document.querySelector(hash)
+      if (element) element.scrollIntoView({ behavior: 'smooth' })
     }
   }
 
@@ -34,8 +44,6 @@ const Footer = () => {
     e.preventDefault()
     setIsSubmitting(true)
     setSubmitMessage('')
-
-    // TODO: Integrate with Strapi API
     setTimeout(() => {
       setIsSubmitting(false)
       setSubmitMessage('Inscrição realizada com sucesso!')
@@ -43,9 +51,78 @@ const Footer = () => {
     }, 1000)
   }
 
+  const handleContactSubmit = async (e) => {
+    e.preventDefault()
+    setContactFeedback('')
+    setContactSubmitting(true)
+    try {
+      await submitContact(contactForm)
+      setContactFeedback('Mensagem enviada com sucesso!')
+      setContactForm({ name: '', email: '', phone: '', message: '' })
+    } catch (err) {
+      setContactFeedback(err.message || 'Erro ao enviar. Tente novamente.')
+    } finally {
+      setContactSubmitting(false)
+    }
+  }
+
   return (
     <footer id="contato" className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+        {/* Contact form - send message */}
+        <div className="mb-10 lg:mb-12">
+          <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
+            Enviar mensagem
+          </h4>
+          <form onSubmit={handleContactSubmit} className="max-w-xl space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="Nome"
+                required
+                value={contactForm.name}
+                onChange={(e) => setContactForm((f) => ({ ...f, name: e.target.value }))}
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                required
+                value={contactForm.email}
+                onChange={(e) => setContactForm((f) => ({ ...f, email: e.target.value }))}
+                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base"
+              />
+            </div>
+            <input
+              type="tel"
+              placeholder="Telefone (opcional)"
+              value={contactForm.phone}
+              onChange={(e) => setContactForm((f) => ({ ...f, phone: e.target.value }))}
+              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base"
+            />
+            <textarea
+              placeholder="Sua mensagem"
+              required
+              rows={3}
+              value={contactForm.message}
+              onChange={(e) => setContactForm((f) => ({ ...f, message: e.target.value }))}
+              className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base resize-y"
+            />
+            {contactFeedback && (
+              <p className={`text-sm ${contactFeedback.includes('sucesso') ? 'text-green-300' : 'text-amber-300'}`}>
+                {contactFeedback}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={contactSubmitting}
+              className="px-4 py-2 bg-white/90 hover:bg-white text-slate-900 font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+            >
+              {contactSubmitting ? 'Enviando...' : 'Enviar mensagem'}
+            </button>
+          </form>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8 lg:mb-12">
           {/* Logo Section */}
           <div className="lg:col-span-1">
@@ -65,13 +142,13 @@ const Footer = () => {
             <ul className="space-y-2 text-center sm:text-left">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <a
-                    href={link.href}
-                    onClick={(e) => handleLinkClick(e, link.href)}
+                  <Link
+                    to={link.hash ? `${link.to}${link.hash}` : link.to}
+                    onClick={(e) => link.hash && handleAnchorClick(e, link.hash)}
                     className="text-sm sm:text-base text-gray-300 hover:text-white transition-colors duration-200"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
