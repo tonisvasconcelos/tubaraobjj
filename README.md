@@ -44,7 +44,7 @@ cp .env.example .env
 Edite `.env`:
 
 - `VITE_API_URL` – URL do backend (ex.: `http://localhost:4000` em dev; em produção use a URL do Render/Railway).
-- `VITE_BASE_URL` – (opcional) Base do site: `/` para Vercel/Netlify na raiz; `/tubaraobjj/` para GitHub Pages.
+- `VITE_BASE_URL` – (opcional) Base do site. Para Vercel use `/` (padrão).
 
 ### Backend
 
@@ -60,7 +60,8 @@ Edite `backend/.env`:
 - `JWT_SECRET` – string longa e aleatória
 - `ADMIN_EMAIL` e `ADMIN_PASSWORD` – credenciais do único usuário admin
 - `CORS_ORIGIN` – origem permitida (ex.: `https://seu-site.vercel.app`)
-- `API_PUBLIC_URL` – URL pública do backend (ex.: `https://tubarao-api.onrender.com`) para gerar URLs de imagens
+- `API_PUBLIC_URL` – URL pública do backend (ex.: `https://tubarao-api.up.railway.app`) para fallback de uploads locais
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` – recomendado em produção (Railway) para persistência de imagens
 
 Crie o banco e as tabelas:
 
@@ -94,32 +95,35 @@ npm run dev
 npm run build
 ```
 
-Saída em `dist/`. Para Vercel, use `VITE_BASE_URL=/` nas variáveis de ambiente do projeto.
+Saída em `dist/`. Para Vercel, o padrão já é `VITE_BASE_URL=/`.
 
 ## Deploy
 
-### Frontend (Vercel ou Netlify)
+### Frontend (Vercel)
 
-1. Conecte o repositório ao Vercel (ou Netlify).
+1. Conecte o repositório ao Vercel.
 2. Defina as variáveis de ambiente:
-   - `VITE_API_URL` = URL do backend em produção (ex.: `https://tubarao-bjj-api.onrender.com`)
+   - `VITE_API_URL` = URL do backend em produção (ex.: `https://tubarao-bjj-api.up.railway.app`)
    - `VITE_BASE_URL` = `/` (para deploy na raiz)
 3. Build command: `npm run build`; output: `dist`.
 
 O `vercel.json` já configura o rewrite para SPA (todas as rotas → `index.html`).
 
-### Backend (Render ou Railway)
+### Backend (Railway)
 
-1. Crie um **Web Service** e um banco **PostgreSQL** (Render ou Railway).
-2. Repo: apontar para a pasta `backend` ou raiz (e definir start na pasta `backend`).
+1. Crie um projeto no Railway com:
+   - Serviço Node apontando para a pasta `backend`
+   - Banco PostgreSQL do próprio Railway
+2. O arquivo `backend/railway.json` já define start e healthcheck.
 3. Variáveis de ambiente:
    - `DATABASE_URL` (fornecido pelo banco)
    - `JWT_SECRET` (gerar um valor seguro)
    - `ADMIN_EMAIL` e `ADMIN_PASSWORD`
-   - `CORS_ORIGIN` = URL do frontend (ex.: `https://tubaraobjj.vercel.app`)
-   - `API_PUBLIC_URL` = URL do próprio backend (ex.: `https://tubarao-bjj-api.onrender.com`)
-4. Build: `npm install`. Start: `node src/index.js` (ou `npm start`).
-5. Após o primeiro deploy, rode a migração e o seed (via CLI ou script no servidor) para criar tabelas e usuário admin.
+   - `CORS_ORIGIN` = URL do frontend no Vercel (ex.: `https://tubaraobjj.vercel.app`)
+   - `API_PUBLIC_URL` = URL do próprio backend no Railway (ex.: `https://tubarao-bjj-api.up.railway.app`)
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (fortemente recomendado para imagens)
+4. Build command: `npm install` e start `npm start`.
+5. Após o primeiro deploy, abra o shell do serviço Railway e rode `npm run db:setup` para criar tabelas e usuário admin.
 
 ## Rotas do site
 

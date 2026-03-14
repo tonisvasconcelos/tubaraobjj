@@ -1,17 +1,23 @@
 import express from 'express'
 import pool from '../db/pool.js'
 import { authMiddleware } from '../middleware/auth.js'
-import { upload, getUploadUrl } from '../middleware/upload.js'
+import { upload, saveUpload } from '../middleware/upload.js'
 
 const router = express.Router()
 router.use(authMiddleware)
 
 // ----- Upload (single image) -----
-router.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'Nenhum arquivo enviado' })
+router.post('/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nenhum arquivo enviado' })
+    }
+    const url = await saveUpload(req.file)
+    return res.json({ url })
+  } catch (e) {
+    console.error(e)
+    return res.status(500).json({ error: 'Falha no upload' })
   }
-  res.json({ url: getUploadUrl(req.file.filename), filename: req.file.filename })
 })
 
 // ----- Team members -----

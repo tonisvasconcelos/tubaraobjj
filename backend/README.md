@@ -13,6 +13,7 @@ Copie `.env.example` para `.env` e preencha:
 - `CORS_ORIGIN` – origem(s) do frontend (ex.: `https://seu-app.vercel.app`)
 - `API_PUBLIC_URL` – URL pública da API (para URLs de imagens)
 - `UPLOAD_DIR` – pasta de uploads (default `./uploads`)
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` – recomendado para produção no Railway (persistência de imagens)
 
 ## Comandos
 
@@ -20,6 +21,7 @@ Copie `.env.example` para `.env` e preencha:
 npm install
 npm run db:migrate   # cria tabelas
 npm run db:seed      # cria usuário admin
+npm run db:setup     # migrate + seed
 npm run dev          # servidor com watch
 npm start            # servidor produção
 ```
