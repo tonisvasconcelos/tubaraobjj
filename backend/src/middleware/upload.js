@@ -8,10 +8,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads')
 const cloudinaryFolder = process.env.CLOUDINARY_FOLDER || 'tubaraobjj'
 
+function isConfiguredValue(value) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return false
+  // Ignore common placeholder values often left in env templates.
+  return !/^your[_-]/i.test(normalized)
+}
+
 const hasCloudinaryConfig =
-  Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
-  Boolean(process.env.CLOUDINARY_API_KEY) &&
-  Boolean(process.env.CLOUDINARY_API_SECRET)
+  isConfiguredValue(process.env.CLOUDINARY_CLOUD_NAME) &&
+  isConfiguredValue(process.env.CLOUDINARY_API_KEY) &&
+  isConfiguredValue(process.env.CLOUDINARY_API_SECRET)
 
 if (hasCloudinaryConfig) {
   cloudinary.config({
@@ -68,7 +75,11 @@ export async function saveUpload(file) {
     throw new Error('No file provided')
   }
   if (hasCloudinaryConfig) {
-    return uploadToCloudinary(file)
+    try {
+      return await uploadToCloudinary(file)
+    } catch (err) {
+      console.warn('Cloudinary upload failed, falling back to local storage:', err?.message || err)
+    }
   }
   return uploadLocally(file)
 }
