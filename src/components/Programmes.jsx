@@ -26,7 +26,7 @@ const Programmes = () => {
       id: 4,
       title: 'Jiu-Jitsu Baby e Juvenil',
       description: 'Programa para crianças e jovens com foco em coordenação, disciplina, respeito e desenvolvimento técnico no Jiu-Jitsu.',
-      image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      image: `${baseUrl}images/TubaKids.JPG`,
       alt: 'Aula de Jiu-Jitsu Baby e Juvenil',
     },
   ]
