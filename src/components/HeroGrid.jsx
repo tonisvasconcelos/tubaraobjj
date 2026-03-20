@@ -29,7 +29,8 @@ const HeroGrid = () => {
   return (
     <section className="pt-16 md:pt-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 pt-8 lg:pt-12 pb-3 lg:pb-4">
+        {/* Bottom spacing: +20% vs former py-8 / lg:py-12 bottom (2rem→2.4rem, 3rem→3.6rem) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 pt-8 lg:pt-12 pb-[2.4rem] lg:pb-[3.6rem]">
           {heroCards.map((card) => (
             <Link
               key={card.id}
