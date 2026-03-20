@@ -4,6 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
 import cors from 'cors'
+import multer from 'multer'
 import pool from './db/pool.js'
 import authRoutes from './routes/auth.js'
 import publicRoutes from './routes/public.js'
@@ -44,6 +45,15 @@ app.get('/api/health/db', async (req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err)
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Arquivo muito grande (máx. 20MB)' })
+    }
+    return res.status(400).json({ error: err.message || 'Falha no upload' })
+  }
+  if (String(err?.message || '').includes('Only images')) {
+    return res.status(400).json({ error: 'Somente imagens (jpeg, png, gif, webp) são permitidas' })
+  }
   res.status(500).json({ error: err.message || 'Erro no servidor' })
 })
 

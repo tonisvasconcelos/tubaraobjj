@@ -30,7 +30,8 @@ if (hasCloudinaryConfig) {
 
 export const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  // Allow larger photos from modern phones while still capping abuse.
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = /image\/(jpeg|png|gif|webp)/
     if (allowed.test(file.mimetype)) {
