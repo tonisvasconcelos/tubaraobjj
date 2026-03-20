@@ -17,7 +17,7 @@ const Programmes = () => {
       titleKey: 'programmes.p2.title',
       descKey: 'programmes.p2.desc',
       altKey: 'programmes.p2.alt',
-      image: `${baseUrl}images/Nogi.PNG`,
+      image: `${baseUrl}images/casal.PNG`,
     },
     {
       id: 3,
