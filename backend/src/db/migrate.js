@@ -94,6 +94,21 @@ CREATE TABLE IF NOT EXISTS highlights (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Training schedule (Horários)
+CREATE TABLE IF NOT EXISTS training_schedules (
+  id SERIAL PRIMARY KEY,
+  branch_name VARCHAR(255) NOT NULL,
+  training_type VARCHAR(255) NOT NULL,
+  day_of_week SMALLINT NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  notes TEXT,
+  sort_order INT DEFAULT 0,
+  is_published BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 `
 
 async function migrate() {

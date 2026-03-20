@@ -12,7 +12,7 @@ const Header = () => {
   const navItems = [
     { tKey: 'nav.about', href: '/', hash: '#quem-somos' },
     { tKey: 'nav.programmes', href: '/', hash: '#modalidades' },
-    { tKey: 'nav.schedule', href: '/', hash: '#horarios' },
+    { tKey: 'nav.schedule', path: '/horarios' },
     { tKey: 'nav.team', path: '/team' },
     { tKey: 'nav.addresses', path: '/addresses' },
     { tKey: 'nav.store', path: '/store' },

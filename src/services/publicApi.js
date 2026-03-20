@@ -46,6 +46,14 @@ export async function getHighlights() {
   }
 }
 
+export async function getSchedules() {
+  try {
+    return await get('/api/schedules')
+  } catch {
+    return []
+  }
+}
+
 export async function submitContact(data) {
   const res = await fetch(`${API_URL}/api/contacts`, {
     method: 'POST',

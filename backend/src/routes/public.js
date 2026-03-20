@@ -75,6 +75,21 @@ router.get('/highlights', async (req, res) => {
   }
 })
 
+router.get('/schedules', async (req, res) => {
+  try {
+    const r = await pool.query(
+      `SELECT id, branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order
+       FROM training_schedules
+       WHERE is_published = true
+       ORDER BY branch_name ASC, day_of_week ASC, start_time ASC, sort_order ASC, id ASC`
+    )
+    res.json(r.rows)
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
 router.post('/contacts', async (req, res) => {
   try {
     const { name, email, phone, message } = req.body || {}

@@ -1,9 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Users, MapPin, ShoppingBag, Image, Mail, Star, LogOut } from 'lucide-react'
+import { Users, MapPin, ShoppingBag, Image, Mail, Star, Calendar, LogOut } from 'lucide-react'
 
 const navItems = [
   { path: 'team', label: 'Equipe', icon: Users },
+  { path: 'schedules', label: 'Horários', icon: Calendar },
   { path: 'branches', label: 'Unidades', icon: MapPin },
   { path: 'products', label: 'Loja', icon: ShoppingBag },
   { path: 'gallery', label: 'Galeria', icon: Image },

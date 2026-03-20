@@ -75,4 +75,30 @@ export const admin = {
     update: (id, body) => authFetch(`/api/admin/highlights/${id}`, { method: 'PUT', body: JSON.stringify(body) }).then((r) => r.json()),
     delete: (id) => authFetch(`/api/admin/highlights/${id}`, { method: 'DELETE' }),
   },
+  schedules: {
+    list: async () => {
+      const r = await authFetch('/api/admin/schedules')
+      const data = await r.json().catch(() => [])
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar horários')
+      return Array.isArray(data) ? data : []
+    },
+    create: async (body) => {
+      const r = await authFetch('/api/admin/schedules', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar')
+      return data
+    },
+    update: async (id, body) => {
+      const r = await authFetch(`/api/admin/schedules/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar')
+      return data
+    },
+    delete: async (id) => {
+      const r = await authFetch(`/api/admin/schedules/${id}`, { method: 'DELETE' })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover')
+    },
+  },
 }

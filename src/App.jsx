@@ -7,6 +7,7 @@ import TeamPage from './pages/TeamPage'
 import AddressesPage from './pages/AddressesPage'
 import StorePage from './pages/StorePage'
 import GalleryPage from './pages/GalleryPage'
+import SchedulePage from './pages/SchedulePage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminSection from './pages/admin/AdminSection'
 
@@ -21,6 +22,7 @@ const router = createBrowserRouter(
         { path: 'addresses', element: <AddressesPage /> },
         { path: 'store', element: <StorePage /> },
         { path: 'gallery', element: <GalleryPage /> },
+        { path: 'horarios', element: <SchedulePage /> },
       ],
     },
     {

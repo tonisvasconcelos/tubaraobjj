@@ -20,6 +20,93 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   }
 })
 
+// ----- Training schedules (Horários) -----
+router.get('/schedules', async (req, res) => {
+  try {
+    const r = await pool.query(
+      'SELECT * FROM training_schedules ORDER BY branch_name ASC, day_of_week ASC, start_time ASC, sort_order ASC, id ASC'
+    )
+    res.json(r.rows)
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
+router.post('/schedules', async (req, res) => {
+  try {
+    const { branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published } =
+      req.body || {}
+    const day = parseInt(day_of_week, 10)
+    if (Number.isNaN(day) || day < 0 || day > 6) {
+      return res.status(400).json({ error: 'day_of_week deve ser 0 (domingo) a 6 (sábado)' })
+    }
+    const r = await pool.query(
+      `INSERT INTO training_schedules (branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published)
+       VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8) RETURNING *`,
+      [
+        branch_name || '',
+        training_type || '',
+        day,
+        start_time || '00:00',
+        end_time || '00:00',
+        notes || null,
+        sort_order ?? 0,
+        is_published !== false,
+      ]
+    )
+    res.status(201).json(r.rows[0])
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
+router.put('/schedules/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10)
+    const { branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published } =
+      req.body || {}
+    const day = parseInt(day_of_week, 10)
+    if (Number.isNaN(day) || day < 0 || day > 6) {
+      return res.status(400).json({ error: 'day_of_week deve ser 0 (domingo) a 6 (sábado)' })
+    }
+    const r = await pool.query(
+      `UPDATE training_schedules SET branch_name = $1, training_type = $2, day_of_week = $3,
+       start_time = $4::time, end_time = $5::time, notes = $6, sort_order = $7, is_published = $8, updated_at = NOW()
+       WHERE id = $9 RETURNING *`,
+      [
+        branch_name ?? '',
+        training_type ?? '',
+        day,
+        start_time ?? '00:00',
+        end_time ?? '00:00',
+        notes ?? null,
+        sort_order ?? 0,
+        is_published !== false,
+        id,
+      ]
+    )
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
+    res.json(r.rows[0])
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
+router.delete('/schedules/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10)
+    const r = await pool.query('DELETE FROM training_schedules WHERE id = $1 RETURNING id', [id])
+    if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
+    res.status(204).send()
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
 // ----- Team members -----
 router.get('/team-members', async (req, res) => {
   try {

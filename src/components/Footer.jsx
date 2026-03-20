@@ -26,7 +26,7 @@ const Footer = () => {
   const quickLinks = [
     { tKey: 'nav.about', to: '/', hash: '#quem-somos' },
     { tKey: 'nav.programmes', to: '/', hash: '#modalidades' },
-    { tKey: 'nav.schedule', to: '/', hash: '#horarios' },
+    { tKey: 'nav.schedule', to: '/horarios' },
     { tKey: 'nav.team', to: '/team' },
     { tKey: 'nav.addresses', to: '/addresses' },
     { tKey: 'nav.store', to: '/store' },
