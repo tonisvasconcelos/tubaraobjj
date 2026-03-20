@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { getProducts } from '../services/publicApi'
 import { ShoppingBag } from 'lucide-react'
+import { useLanguage } from '../i18n/LanguageProvider'
 
 export default function StorePage() {
+  const { lang, t } = useLanguage()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -13,21 +15,23 @@ export default function StorePage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const priceLocale = lang === 'pt' ? 'pt-BR' : lang === 'es' ? 'es-ES' : 'en-US'
+
   const formatPrice = (n) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n)
+    return new Intl.NumberFormat(priceLocale, { style: 'currency', currency: 'BRL' }).format(n)
   }
 
   return (
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-12">
-          Loja
+          {t('store.title')}
         </h1>
         {loading ? (
-          <p className="text-center text-slate-600">Carregando...</p>
+          <p className="text-center text-slate-600">{t('store.loading')}</p>
         ) : products.length === 0 ? (
           <p className="text-center text-slate-600 max-w-2xl mx-auto">
-            Produtos Tubarão BJJ em breve. Compra via WhatsApp/Instagram.
+            {t('store.empty')}
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -53,7 +57,8 @@ export default function StorePage() {
                   <p className="mt-2 text-lg font-semibold text-slate-900">{formatPrice(parseFloat(product.price))}</p>
                   {product.variants && product.variants.length > 0 && (
                     <p className="text-xs text-slate-500 mt-1">
-                      Variantes: {product.variants.map((v) => [v.color, v.size].filter(Boolean).join(' / ') || '—').join(' · ')}
+                      {t('store.variants')}:{' '}
+                      {product.variants.map((v) => [v.color, v.size].filter(Boolean).join(' / ') || '—').join(' · ')}
                     </p>
                   )}
                   <a
@@ -63,7 +68,7 @@ export default function StorePage() {
                     className="mt-4 inline-flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors"
                   >
                     <ShoppingBag className="w-5 h-5" />
-                    Comprar via WhatsApp
+                    {t('store.buyWhatsapp')}
                   </a>
                 </div>
               </article>

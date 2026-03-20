@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { LanguageProvider } from './i18n/LanguageProvider'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './pages/AdminLayout'
 import HomePage from './pages/HomePage'
@@ -35,7 +36,11 @@ const router = createBrowserRouter(
 )
 
 function App() {
-  return <RouterProvider router={router} />
+  return (
+    <LanguageProvider>
+      <RouterProvider router={router} />
+    </LanguageProvider>
+  )
 }
 
 export default App

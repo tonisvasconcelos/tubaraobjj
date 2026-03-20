@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
 import { getHighlights } from '../services/publicApi'
+import { useLanguage } from '../i18n/LanguageProvider'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
 const HighlightsCarousel = () => {
+  const { t } = useLanguage()
   const [highlights, setHighlights] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -23,7 +25,7 @@ const HighlightsCarousel = () => {
     <section className="py-12 sm:py-16 lg:py-24 bg-white/55 backdrop-blur-[2px]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-dark mb-12 sm:mb-16">
-          Destaques
+          {t('highlights.title')}
         </h2>
         <Swiper
           modules={[Navigation, Pagination, Autoplay]}

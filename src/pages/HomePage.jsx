@@ -5,7 +5,6 @@ import AboutSection from '../components/AboutSection'
 import Programmes from '../components/Programmes'
 import JoinFamily from '../components/JoinFamily'
 import HighlightsCarousel from '../components/HighlightsCarousel'
-import StoreNewsletter from '../components/StoreNewsletter'
 
 const HomePage = () => {
   const location = useLocation()
@@ -23,7 +22,6 @@ const HomePage = () => {
       <Programmes />
       <JoinFamily />
       <HighlightsCarousel />
-      <StoreNewsletter />
     </>
   )
 }

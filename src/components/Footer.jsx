@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react'
 import { submitContact } from '../services/publicApi'
+import { useLanguage } from '../i18n/LanguageProvider'
 
 const Footer = () => {
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitMessage, setSubmitMessage] = useState('')
+  const [newsletterOk, setNewsletterOk] = useState(false)
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' })
   const [contactSubmitting, setContactSubmitting] = useState(false)
-  const [contactFeedback, setContactFeedback] = useState('')
+  const [contactStatus, setContactStatus] = useState(null)
   const location = useLocation()
   const isHome = location.pathname === '/' || location.pathname === ''
 
@@ -22,14 +24,14 @@ const Footer = () => {
   }
 
   const quickLinks = [
-    { name: 'Quem Somos', to: '/', hash: '#quem-somos' },
-    { name: 'Modalidades', to: '/', hash: '#modalidades' },
-    { name: 'Horários', to: '/', hash: '#horarios' },
-    { name: 'Equipe', to: '/team' },
-    { name: 'Unidades', to: '/addresses' },
-    { name: 'Loja', to: '/store' },
-    { name: 'Galeria', to: '/gallery' },
-    { name: 'Contato', to: '/', hash: '#contato' },
+    { tKey: 'nav.about', to: '/', hash: '#quem-somos' },
+    { tKey: 'nav.programmes', to: '/', hash: '#modalidades' },
+    { tKey: 'nav.schedule', to: '/', hash: '#horarios' },
+    { tKey: 'nav.team', to: '/team' },
+    { tKey: 'nav.addresses', to: '/addresses' },
+    { tKey: 'nav.store', to: '/store' },
+    { tKey: 'nav.gallery', to: '/gallery' },
+    { tKey: 'nav.contact', to: '/', hash: '#contato' },
   ]
 
   const handleAnchorClick = (e, hash) => {
@@ -43,24 +45,24 @@ const Footer = () => {
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    setSubmitMessage('')
+    setNewsletterOk(false)
     setTimeout(() => {
       setIsSubmitting(false)
-      setSubmitMessage('Inscrição realizada com sucesso!')
+      setNewsletterOk(true)
       setEmail('')
     }, 1000)
   }
 
   const handleContactSubmit = async (e) => {
     e.preventDefault()
-    setContactFeedback('')
+    setContactStatus(null)
     setContactSubmitting(true)
     try {
       await submitContact(contactForm)
-      setContactFeedback('Mensagem enviada com sucesso!')
+      setContactStatus('success')
       setContactForm({ name: '', email: '', phone: '', message: '' })
     } catch (err) {
-      setContactFeedback(err.message || 'Erro ao enviar. Tente novamente.')
+      setContactStatus('error')
     } finally {
       setContactSubmitting(false)
     }
@@ -69,16 +71,15 @@ const Footer = () => {
   return (
     <footer id="contato" className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-        {/* Contact form - send message */}
         <div className="mb-10 lg:mb-12">
           <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
-            Enviar mensagem
+            {t('footer.sendMessage')}
           </h4>
           <form onSubmit={handleContactSubmit} className="max-w-xl space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
-                placeholder="Nome"
+                placeholder={t('footer.placeholder.name')}
                 required
                 value={contactForm.name}
                 onChange={(e) => setContactForm((f) => ({ ...f, name: e.target.value }))}
@@ -86,7 +87,7 @@ const Footer = () => {
               />
               <input
                 type="email"
-                placeholder="Email"
+                placeholder={t('footer.placeholder.email')}
                 required
                 value={contactForm.email}
                 onChange={(e) => setContactForm((f) => ({ ...f, email: e.target.value }))}
@@ -95,69 +96,67 @@ const Footer = () => {
             </div>
             <input
               type="tel"
-              placeholder="Telefone (opcional)"
+              placeholder={t('footer.placeholder.phone')}
               value={contactForm.phone}
               onChange={(e) => setContactForm((f) => ({ ...f, phone: e.target.value }))}
               className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base"
             />
             <textarea
-              placeholder="Sua mensagem"
+              placeholder={t('footer.placeholder.message')}
               required
               rows={3}
               value={contactForm.message}
               onChange={(e) => setContactForm((f) => ({ ...f, message: e.target.value }))}
               className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 outline-none text-sm sm:text-base resize-y"
             />
-            {contactFeedback && (
-              <p className={`text-sm ${contactFeedback.includes('sucesso') ? 'text-green-300' : 'text-amber-300'}`}>
-                {contactFeedback}
-              </p>
+            {contactStatus === 'success' && (
+              <p className="text-sm text-green-300">{t('footer.contactSuccess')}</p>
+            )}
+            {contactStatus === 'error' && (
+              <p className="text-sm text-amber-300">{t('footer.contactError')}</p>
             )}
             <button
               type="submit"
               disabled={contactSubmitting}
               className="px-4 py-2 bg-white/90 hover:bg-white text-slate-900 font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
-              {contactSubmitting ? 'Enviando...' : 'Enviar mensagem'}
+              {contactSubmitting ? t('footer.sending') : t('footer.submitContact')}
             </button>
           </form>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8 lg:mb-12">
-          {/* Logo Section */}
           <div className="lg:col-span-1">
             <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-center sm:text-left">
-              GFTeam Tubarão
+              {t('footer.brand')}
             </h3>
             <p className="text-sm sm:text-base text-gray-300 text-center sm:text-left">
-              Jiu-Jitsu Academy
+              {t('footer.tagline')}
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
             <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
-              Links Rápidos
+              {t('footer.quickLinks')}
             </h4>
             <ul className="space-y-2 text-center sm:text-left">
               {quickLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.tKey}>
                   <Link
                     to={link.hash ? `${link.to}${link.hash}` : link.to}
                     onClick={(e) => link.hash && handleAnchorClick(e, link.hash)}
                     className="text-sm sm:text-base text-gray-300 hover:text-white transition-colors duration-200"
                   >
-                    {link.name}
+                    {t(link.tKey)}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div>
             <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
-              Contato
+              {t('footer.contactSection')}
             </h4>
             <ul className="space-y-3 text-sm sm:text-base text-gray-300 text-center sm:text-left">
               <li className="flex items-center justify-center sm:justify-start space-x-2">
@@ -179,23 +178,22 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Newsletter */}
           <div>
             <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
-              Newsletter
+              {t('footer.newsletter')}
             </h4>
             <form onSubmit={handleNewsletterSubmit} className="space-y-3">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Seu email"
+                placeholder={t('footer.placeholder.newsletterEmail')}
                 required
                 className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 focus:border-transparent outline-none transition-all text-sm sm:text-base"
               />
-              {submitMessage && (
+              {newsletterOk && (
                 <div className="p-2 bg-green-900 text-green-100 rounded-lg text-xs sm:text-sm">
-                  {submitMessage}
+                  {t('footer.newsletterSuccess')}
                 </div>
               )}
               <button
@@ -203,13 +201,12 @@ const Footer = () => {
                 disabled={isSubmitting}
                 className="w-full bg-white/90 hover:bg-white text-slate-900 font-semibold px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
-                {isSubmitting ? 'Enviando...' : 'Inscrever-se'}
+                {isSubmitting ? t('footer.sending') : t('footer.subscribe')}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Social Media */}
         <div className="flex justify-center space-x-6 mb-8 lg:mb-12">
           <a
             href={companyInfo.instagramUrl}
@@ -231,15 +228,11 @@ const Footer = () => {
           </a>
         </div>
 
-        {/* Bottom Bar */}
         <div className="border-t border-gray-700 pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 text-sm sm:text-base text-gray-400">
-            <p>© {new Date().getFullYear()} GFTeam Tubarão. Todos os direitos reservados.</p>
-            <a
-              href="#privacy"
-              className="hover:text-white transition-colors duration-200"
-            >
-              Política de Privacidade
+            <p>{t('footer.copyright', { year: new Date().getFullYear() })}</p>
+            <a href="#privacy" className="hover:text-white transition-colors duration-200">
+              {t('footer.privacy')}
             </a>
           </div>
         </div>

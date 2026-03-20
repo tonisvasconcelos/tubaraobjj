@@ -1,10 +1,9 @@
+import { useLanguage } from '../i18n/LanguageProvider'
+
 const AboutSection = () => {
   const baseUrl = import.meta.env.BASE_URL
+  const { t } = useLanguage()
   const aboutData = {
-    quote: 'Acreditamos no jiu-jitsu como instrumento de transformação e saúde para todos.',
-    quoteAuthor: 'Prof. Márcio "Tubarão"',
-    description: 'A GFTeam Tubarão é uma academia de Jiu-Jitsu dedicada a proporcionar uma experiência completa de treinamento para alunos de todas as idades e níveis. Nossa missão é desenvolver não apenas habilidades técnicas, mas também valores como disciplina, respeito e superação pessoal.',
-    gfteamAffiliation: 'Fazemos parte da rede GFTeam, uma das maiores e mais respeitadas equipes de Jiu-Jitsu do mundo, garantindo metodologia de ensino de excelência e suporte técnico de alto nível.',
     professorImage: `${baseUrl}images/TubaDesertPB.JPG`,
   }
 
@@ -14,7 +13,7 @@ const AboutSection = () => {
         <div className="relative overflow-hidden border-y border-white/50 shadow-xl">
           <img
             src={aboutData.professorImage}
-            alt={aboutData.quoteAuthor}
+            alt={t('about.quoteAuthor')}
             className="h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full object-cover opacity-80"
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/1400x800/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'
@@ -26,15 +25,15 @@ const AboutSection = () => {
           <div className="relative md:absolute md:inset-0 md:flex md:items-center">
             <div className="w-full max-w-2xl bg-black/70 p-5 text-white sm:p-6 md:bg-transparent md:px-8 md:py-0 lg:px-10">
               <blockquote className="text-lg sm:text-xl md:text-2xl lg:text-4xl font-semibold italic leading-relaxed">
-                "{aboutData.quote}"
+                "{t('about.quote')}"
               </blockquote>
               <p className="mt-3 text-xs sm:text-sm md:text-base lg:text-lg text-white/85 font-medium">
-                — {aboutData.quoteAuthor}
+                — {t('about.quoteAuthor')}
               </p>
 
               <div className="mt-4 space-y-3 text-xs sm:text-sm md:text-base lg:text-lg text-white/90 leading-relaxed">
-                <p>{aboutData.description}</p>
-                <p>{aboutData.gfteamAffiliation}</p>
+                <p>{t('about.description')}</p>
+                <p>{t('about.gfteam')}</p>
               </div>
             </div>
           </div>

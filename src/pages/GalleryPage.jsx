@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { getGallery } from '../services/publicApi'
+import { useLanguage } from '../i18n/LanguageProvider'
 
-const CATEGORY_LABELS = { training: 'Treino', competition: 'Competição', event: 'Evento' }
+const GALLERY_CATEGORIES = ['training', 'competition', 'event']
 
 export default function GalleryPage() {
+  const { t } = useLanguage()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -21,13 +23,13 @@ export default function GalleryPage() {
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-8">
-          Galeria
+          {t('gallery.title')}
         </h1>
         {loading ? (
-          <p className="text-center text-slate-600">Carregando...</p>
+          <p className="text-center text-slate-600">{t('gallery.loading')}</p>
         ) : items.length === 0 ? (
           <p className="text-center text-slate-600 max-w-2xl mx-auto">
-            Fotos de treinos, competições e eventos. Em breve.
+            {t('gallery.empty')}
           </p>
         ) : (
           <>
@@ -37,16 +39,16 @@ export default function GalleryPage() {
                 onClick={() => setFilter('all')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === 'all' ? 'bg-slate-900 text-white' : 'bg-white/60 text-slate-700 hover:bg-white/80'}`}
               >
-                Todas
+                {t('gallery.filterAll')}
               </button>
-              {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+              {GALLERY_CATEGORIES.map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setFilter(value)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${filter === value ? 'bg-slate-900 text-white' : 'bg-white/60 text-slate-700 hover:bg-white/80'}`}
                 >
-                  {label}
+                  {t(`gallery.cat.${value}`)}
                 </button>
               ))}
             </div>
@@ -58,7 +60,7 @@ export default function GalleryPage() {
                 >
                   <img
                     src={item.image_url}
-                    alt={item.title || 'Galeria'}
+                    alt={item.title || t('gallery.alt')}
                     className="w-full h-full object-cover"
                   />
                   {item.title && (
