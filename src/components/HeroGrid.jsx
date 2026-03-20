@@ -8,7 +8,7 @@ const HeroGrid = () => {
       id: 3,
       title: 'equipe',
       description: 'Conheça o Professor Márcio "Tubarão" e nossa equipe de instrutores dedicados.',
-      backgroundImage: `${baseUrl}images/TubaraoTeam.PNG`,
+      backgroundImage: `${baseUrl}images/TubaraoTeam2.PNG`,
       link: '/team',
     },
     {
