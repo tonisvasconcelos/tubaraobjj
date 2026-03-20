@@ -1,8 +1,8 @@
 name: Deploy to GitHub Pages
 
+# Manual only: production frontend is on Vercel (https://www.tubaraobjj.com).
+# Prevents accidental Pages deploys on every push to main.
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 permissions:

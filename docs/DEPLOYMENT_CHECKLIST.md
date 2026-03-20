@@ -2,6 +2,9 @@
 
 Review of everything needed to have the **public website** and **admin portal** live. What’s done ✅ and what’s missing or optional ⚠️.
 
+**Custom domain (GoDaddy + Vercel):** [CUSTOM_DOMAIN_VERCEL_GODADDY.md](./CUSTOM_DOMAIN_VERCEL_GODADDY.md)  
+**Env vars and redeploy order:** [ENV_AND_DOMAIN_REFERENCE.md](./ENV_AND_DOMAIN_REFERENCE.md)
+
 ---
 
 ## 1. Database (Neon) ✅
@@ -25,7 +28,7 @@ Review of everything needed to have the **public website** and **admin portal** 
 | DATABASE_URL | ✅ | Neon connection string |
 | JWT_SECRET | ✅ | Set |
 | ADMIN_EMAIL / ADMIN_PASSWORD | ✅ | admin@tubaraobjj.com / TubaraoAdmin2026 |
-| CORS_ORIGIN | ✅ | Includes Vercel URLs + localhost |
+| CORS_ORIGIN | ✅ | Must include `https://www.tubaraobjj.com` (+ localhost for dev; optional legacy `*.vercel.app`) |
 | API_PUBLIC_URL | ✅ | https://api-production-a236.up.railway.app |
 | Start command | ✅ | `npm run db:setup && npm start` (creates tables + admin on first run) |
 | Healthcheck | ✅ | `/api/health` |
@@ -49,7 +52,7 @@ Review of everything needed to have the **public website** and **admin portal** 
 | SPA rewrites | ✅ | `vercel.json` → all routes to `index.html` |
 | VITE_BASE_URL | ✅ | `/` (for root deploy) |
 | VITE_API_URL | ✅ | Set to Railway API URL |
-| Production URL | ✅ | https://tubaraobjj-website.vercel.app (and aliases) |
+| Production URL | ✅ | **https://www.tubaraobjj.com** (Vercel custom domain; `*.vercel.app` optional) |
 
 **Nothing critical missing.** New pushes to the connected branch trigger a new deploy.
 
@@ -57,12 +60,13 @@ Review of everything needed to have the **public website** and **admin portal** 
 
 ## 4. CORS ✅
 
-Backend allows:
+Backend allows (via `CORS_ORIGIN`):
 
-- Vercel production URL(s)
-- localhost (dev)
+- **https://www.tubaraobjj.com** (production)
+- Optional: legacy `https://tubaraobjj-website.vercel.app` or previews during migration
+- `http://localhost:5173` (local dev)
 
-If you add a **custom domain** on Vercel, add that exact origin to **CORS_ORIGIN** in Railway (comma-separated).
+Production uses **https://www.tubaraobjj.com** — that exact origin must appear in **CORS_ORIGIN** on Railway (comma-separated with other origins if needed). See [ENV_AND_DOMAIN_REFERENCE.md](./ENV_AND_DOMAIN_REFERENCE.md).
 
 ---
 
@@ -70,7 +74,7 @@ If you add a **custom domain** on Vercel, add that exact origin to **CORS_ORIGIN
 
 | Item | Value |
 |------|--------|
-| URL | https://tubaraobjj-website.vercel.app/admin |
+| URL | https://www.tubaraobjj.com/admin |
 | Email | admin@tubaraobjj.com |
 | Password | TubaraoAdmin2026 |
 
@@ -95,20 +99,20 @@ All of these work as long as VITE_API_URL points to the Railway API (already set
 
 ## 7. GitHub Pages (optional / legacy) ⚠️
 
-The repo has a workflow `.github/workflows/deploy.yml` that deploys to **GitHub Pages** on push to `main`.
+The repo has a workflow `.github/workflows/deploy.yml` that can deploy to **GitHub Pages** when run manually (**Actions → Deploy to GitHub Pages → Run workflow**). It does **not** run automatically on `git push` (Vercel is canonical).
 
 | Issue | Detail |
 |-------|--------|
-| Wrong env vars | Workflow uses `VITE_STRAPI_API_URL` and `VITE_STRAPI_API_TOKEN` (old Strapi). The app now uses `VITE_API_URL` (and optionally `VITE_BASE_URL`). |
+| Wrong env vars | Older docs mentioned Strapi vars. The app uses `VITE_API_URL` (and optionally `VITE_BASE_URL`). |
 | Result | If GitHub Pages is enabled, the built site will call `http://localhost:4000` for the API (fallback when env is missing), so the live site won’t work correctly. |
 
 **Options:**
 
-- **Use only Vercel:** Disable GitHub Pages (Settings → Pages → Source: None) and keep using https://tubaraobjj-website.vercel.app as the main URL. No change to the workflow needed.
+- **Use only Vercel (recommended):** Disable GitHub Pages (repo **Settings → Pages → Source: None**). Canonical site URL is **https://www.tubaraobjj.com**. The workflow `.github/workflows/deploy.yml` only runs on **manual** `workflow_dispatch` so pushes to `main` do not overwrite Pages by accident.
 - **Keep GitHub Pages:** In repo **Settings → Secrets and variables → Actions**, add:
   - `VITE_API_URL` = `https://api-production-a236.up.railway.app`
   - `VITE_BASE_URL` = `/tubaraobjj/` (or whatever base path GitHub Pages uses)
-  Then in `.github/workflows/deploy.yml`, change the Build step `env` to use these secrets instead of `VITE_STRAPI_*`.
+  The build step already uses `secrets.VITE_API_URL` and `VITE_BASE_URL: /tubaraobjj/`; ensure the secret is set before running the workflow.
 
 ---
 
@@ -121,24 +125,44 @@ The repo has a workflow `.github/workflows/deploy.yml` that deploys to **GitHub 
    For the **api** service, set Root Directory = `backend` so build/start run in the backend folder.
 
 3. **GitHub Pages vs Vercel**  
-   Decide: either turn off GitHub Pages and use only Vercel, or add `VITE_API_URL` (and `VITE_BASE_URL`) to GitHub Actions secrets and update the workflow so the Pages build uses the Railway API.
+   Production is **Vercel** at **https://www.tubaraobjj.com**. Disable GitHub Pages unless you explicitly want a second static host; if you use Pages, set the `VITE_API_URL` Actions secret and run the workflow manually.
 
-4. **Custom domain (optional)**  
-   If you add a custom domain on Vercel, add that origin to **CORS_ORIGIN** in Railway.
-
----
-
-## 9. Quick verification
-
-- **API:** https://api-production-a236.up.railway.app/api/health → `{"ok":true}`
-- **DB from API:** https://api-production-a236.up.railway.app/api/health/db → `{"ok":true,"db":"ok"}` (if this returns 500, the backend cannot reach Neon)
-- **Login:** POST to https://api-production-a236.up.railway.app/api/auth/login with `{"email":"admin@tubaraobjj.com","password":"TubaraoAdmin2026"}` → `{ "token", "user" }`
-- **Site:** https://tubaraobjj-website.vercel.app
-- **Admin:** https://tubaraobjj-website.vercel.app/admin (login with the credentials above)
+4. **Custom domain**  
+   Follow [CUSTOM_DOMAIN_VERCEL_GODADDY.md](./CUSTOM_DOMAIN_VERCEL_GODADDY.md) and set **CORS_ORIGIN** / **VITE_*** per [ENV_AND_DOMAIN_REFERENCE.md](./ENV_AND_DOMAIN_REFERENCE.md).
 
 ---
 
-## 10. Admin login returns 500 (“Erro no servidor”)
+## 9. Quick verification (API + Neon)
+
+After any Railway or Neon change, confirm from a browser or `curl`:
+
+- **API:** `https://api-production-a236.up.railway.app/api/health` → `{"ok":true}`
+- **DB from API (Neon):** `https://api-production-a236.up.railway.app/api/health/db` → `{"ok":true,"db":"ok"}`  
+  - If this returns **404**, redeploy the **api** service from the current `backend` code (older images may not expose this route yet).
+  - If this returns **500** or `"db":"error"`, Railway cannot reach Neon — check `DATABASE_URL`, Neon project status, and allowlists.
+- **Login:** `POST https://api-production-a236.up.railway.app/api/auth/login` with body `{"email":"admin@tubaraobjj.com","password":"TubaraoAdmin2026"}` → `{ "token", "user" }`
+
+**Frontend (after Vercel env + redeploy):**
+
+- **Site:** https://www.tubaraobjj.com/
+- **Admin:** https://www.tubaraobjj.com/admin
+
+---
+
+## 10. Admin → site content regression (after domain cutover)
+
+Same app and API as before: admin saves to Postgres via Railway; the public site reads the same API.
+
+1. Open **https://www.tubaraobjj.com/admin** and log in.
+2. Change a visible field (e.g. a highlight, team member, or branch) and save.
+3. Open **https://www.tubaraobjj.com/** (or the relevant page) in a normal window or incognito and confirm the change appears.
+4. Upload or replace an image where applicable; confirm the image URL loads (HTTPS, no CORS errors in the console on XHR to the API).
+
+If the site loads but API calls fail with CORS errors, **CORS_ORIGIN** on Railway is missing `https://www.tubaraobjj.com` (exact scheme + host, no trailing slash).
+
+---
+
+## 11. Admin login returns 500 (“Erro no servidor”)
 
 If the admin login shows “Erro no servidor” and the browser shows 500 on `/api/auth/login`:
 

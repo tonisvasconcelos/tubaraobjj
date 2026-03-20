@@ -56,10 +56,10 @@ cp .env.example .env
 
 Edite `backend/.env`:
 
-- `DATABASE_URL` – connection string PostgreSQL
+- `DATABASE_URL` – PostgreSQL connection string (Neon or any Postgres; Neon URLs include `?sslmode=require`)
 - `JWT_SECRET` – string longa e aleatória
 - `ADMIN_EMAIL` e `ADMIN_PASSWORD` – credenciais do único usuário admin
-- `CORS_ORIGIN` – origem permitida (ex.: `https://seu-site.vercel.app`)
+- `CORS_ORIGIN` – origem(ns) permitida(s), separadas por vírgula (produção: `https://www.tubaraobjj.com`, mais `http://localhost:5173` para dev)
 - `API_PUBLIC_URL` – URL pública do backend (ex.: `https://tubarao-api.up.railway.app`) para fallback de uploads locais
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` – recomendado em produção (Railway) para persistência de imagens
 
@@ -102,28 +102,35 @@ Saída em `dist/`. Para Vercel, o padrão já é `VITE_BASE_URL=/`.
 ### Frontend (Vercel)
 
 1. Conecte o repositório ao Vercel.
-2. Defina as variáveis de ambiente:
-   - `VITE_API_URL` = URL do backend em produção (ex.: `https://tubarao-bjj-api.up.railway.app`)
-   - `VITE_BASE_URL` = `/` (para deploy na raiz)
-3. Build command: `npm run build`; output: `dist`.
+2. Defina as variáveis de ambiente (Production):
+   - `VITE_API_URL` = URL pública do backend no Railway (ex.: `https://api-production-a236.up.railway.app`)
+   - `VITE_BASE_URL` = `/` (domínio customizado na raiz, ex.: **https://www.tubaraobjj.com**)
+3. No Vercel: **Settings → Domains** — adicione `www.tubaraobjj.com` e configure o DNS na GoDaddy (veja [docs/CUSTOM_DOMAIN_VERCEL_GODADDY.md](docs/CUSTOM_DOMAIN_VERCEL_GODADDY.md)).
+4. Build command: `npm run build`; output: `dist`.
 
 O `vercel.json` já configura o rewrite para SPA (todas as rotas → `index.html`).
 
-### Backend (Railway)
+Referência de variáveis e ordem de redeploy: [docs/ENV_AND_DOMAIN_REFERENCE.md](docs/ENV_AND_DOMAIN_REFERENCE.md).
 
-1. Crie um projeto no Railway com:
-   - Serviço Node apontando para a pasta `backend`
-   - Banco PostgreSQL do próprio Railway
-2. O arquivo `backend/railway.json` já define start e healthcheck.
-3. Variáveis de ambiente:
-   - `DATABASE_URL` (fornecido pelo banco)
-   - `JWT_SECRET` (gerar um valor seguro)
-   - `ADMIN_EMAIL` e `ADMIN_PASSWORD`
-   - `CORS_ORIGIN` = URL do frontend no Vercel (ex.: `https://tubaraobjj.vercel.app`)
-   - `API_PUBLIC_URL` = URL do próprio backend no Railway (ex.: `https://tubarao-bjj-api.up.railway.app`)
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (fortemente recomendado para imagens)
-4. Build command: `npm install` e start `npm start`.
-5. Após o primeiro deploy, abra o shell do serviço Railway e rode `npm run db:setup` para criar tabelas e usuário admin.
+### Backend (Railway + Neon)
+
+1. **Database (Neon)**  
+   - Em [neon.tech](https://neon.tech), crie um novo projeto (ou use um existente) e um banco para este app.  
+   - Copie a **connection string** (Connection string) do dashboard — use a que inclui `?sslmode=require` (ou a pooled URL se preferir).
+
+2. **Railway**  
+   - Crie um projeto no Railway com um serviço Node apontando para a pasta `backend` (sem precisar de Postgres no Railway).  
+   - O arquivo `backend/railway.json` já define start e healthcheck.
+
+3. **Variáveis de ambiente no Railway (serviço api)**  
+   - `DATABASE_URL` = connection string do Neon (cola a URL copiada do Neon).  
+   - `JWT_SECRET` = string longa e aleatória.  
+   - `ADMIN_EMAIL` e `ADMIN_PASSWORD` = credenciais do admin.  
+   - `CORS_ORIGIN` = origem do site (ex.: `https://www.tubaraobjj.com,http://localhost:5173`).  
+   - `API_PUBLIC_URL` = URL do backend no Railway (ex.: `https://api-production-xxxx.up.railway.app`).  
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (recomendado para imagens).
+
+4. Build: `npm install`; start: `npm start` (o start já roda `db:setup` na primeira vez para criar tabelas e usuário admin no Neon).
 
 ## Rotas do site
 

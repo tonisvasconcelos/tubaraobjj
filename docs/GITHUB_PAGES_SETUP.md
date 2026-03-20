@@ -1,6 +1,8 @@
-# GitHub Pages setup
+# GitHub Pages setup (legacy / optional)
 
-Follow these steps so **https://tonisvasconcelos.github.io/tubaraobjj/** works with the correct assets and API.
+**Production site:** **https://www.tubaraobjj.com** (Vercel). Prefer [CUSTOM_DOMAIN_VERCEL_GODADDY.md](./CUSTOM_DOMAIN_VERCEL_GODADDY.md) and [ENV_AND_DOMAIN_REFERENCE.md](./ENV_AND_DOMAIN_REFERENCE.md).
+
+This page is only if you still use **https://tonisvasconcelos.github.io/tubaraobjj/**. The “Deploy to GitHub Pages” workflow runs **manually** only (`workflow_dispatch`); it does not run on every push to `main`.
 
 ---
 
@@ -17,7 +19,7 @@ The GitHub Actions build needs your API URL so the site can call the Railway bac
    - **Secret:** `https://api-production-a236.up.railway.app`
 6. Click **Add secret**.
 
-After this, the next run of the “Deploy to GitHub Pages” workflow will build with this API URL.
+After this, the next **manual** run of the “Deploy to GitHub Pages” workflow will build with this API URL.
 
 ---
 
@@ -37,8 +39,7 @@ Commit and push these changes to `main` if they are not already there:
 
 ## 3. Trigger a deploy
 
-- **Option A:** Push a commit to `main` → the workflow runs automatically.
-- **Option B:** Go to **Actions** → **Deploy to GitHub Pages** → **Run workflow** → **Run workflow**.
+- Go to **Actions** → **Deploy to GitHub Pages** → **Run workflow** → **Run workflow**.
 
 ---
 
@@ -57,8 +58,8 @@ If it’s set to “Deploy from a branch”, switch it to **GitHub Actions** so 
 | Step | What to do |
 |------|------------|
 | 1 | Add secret `VITE_API_URL` = `https://api-production-a236.up.railway.app` |
-| 2 | Push latest workflow + index.html to `main` |
-| 3 | Run the workflow (push or manual run) |
+| 2 | Push latest workflow + index.html to `main` (if needed) |
+| 3 | Run the workflow manually in Actions |
 | 4 | Confirm Pages source is “GitHub Actions” |
 
 After that, **https://tonisvasconcelos.github.io/tubaraobjj/** should load and call your Railway API.
