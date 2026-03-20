@@ -8,7 +8,7 @@ const AboutSection = () => {
   }
 
   return (
-    <section id="quem-somos" className="py-12 sm:py-16 lg:py-24 bg-white/55 backdrop-blur-[2px]">
+    <section id="quem-somos" className="py-0 bg-white/55 backdrop-blur-[2px]">
       <div className="w-full">
         <div className="relative overflow-hidden border-y border-white/50 shadow-xl">
           <img

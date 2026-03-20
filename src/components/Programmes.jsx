@@ -36,7 +36,7 @@ const Programmes = () => {
   ]
 
   return (
-    <section id="modalidades" className="py-12 sm:py-16 lg:py-24 bg-white/45 backdrop-blur-[2px]">
+    <section id="modalidades" className="pt-6 sm:pt-8 lg:pt-10 pb-12 sm:pb-16 lg:pb-24 bg-white/45 backdrop-blur-[2px]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-12 sm:mb-16">
           {t('programmes.title')}
