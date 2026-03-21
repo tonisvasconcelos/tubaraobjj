@@ -59,12 +59,6 @@ export const admin = {
     update: (id, body) => authFetch(`/api/admin/products/${id}`, { method: 'PUT', body: JSON.stringify(body) }).then((r) => r.json()),
     delete: (id) => authFetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
   },
-  gallery: {
-    list: () => authFetch('/api/admin/gallery').then((r) => r.json()),
-    create: (body) => authFetch('/api/admin/gallery', { method: 'POST', body: JSON.stringify(body) }).then((r) => r.json()),
-    update: (id, body) => authFetch(`/api/admin/gallery/${id}`, { method: 'PUT', body: JSON.stringify(body) }).then((r) => r.json()),
-    delete: (id) => authFetch(`/api/admin/gallery/${id}`, { method: 'DELETE' }),
-  },
   contacts: {
     list: () => authFetch('/api/admin/contacts').then((r) => r.json()),
     markRead: (id) => authFetch(`/api/admin/contacts/${id}/read`, { method: 'PATCH' }).then((r) => r.json()),

@@ -329,59 +329,6 @@ router.delete('/products/:id', async (req, res) => {
   }
 })
 
-// ----- Gallery -----
-router.get('/gallery', async (req, res) => {
-  try {
-    const r = await pool.query('SELECT * FROM gallery_items ORDER BY sort_order ASC, created_at DESC')
-    res.json(r.rows)
-  } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Erro no servidor' })
-  }
-})
-
-router.post('/gallery', async (req, res) => {
-  try {
-    const { title, image_url, category, sort_order, is_published } = req.body || {}
-    const r = await pool.query(
-      `INSERT INTO gallery_items (title, image_url, category, sort_order, is_published) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [title || null, image_url || '', category || 'training', sort_order ?? 0, is_published !== false]
-    )
-    res.status(201).json(r.rows[0])
-  } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Erro no servidor' })
-  }
-})
-
-router.put('/gallery/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10)
-    const { title, image_url, category, sort_order, is_published } = req.body || {}
-    const r = await pool.query(
-      `UPDATE gallery_items SET title = $1, image_url = $2, category = $3, sort_order = $4, is_published = $5, updated_at = NOW() WHERE id = $6 RETURNING *`,
-      [title ?? null, image_url ?? '', category ?? 'training', sort_order ?? 0, is_published !== false, id]
-    )
-    if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
-    res.json(r.rows[0])
-  } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Erro no servidor' })
-  }
-})
-
-router.delete('/gallery/:id', async (req, res) => {
-  try {
-    const id = parseInt(req.params.id, 10)
-    const r = await pool.query('DELETE FROM gallery_items WHERE id = $1 RETURNING id', [id])
-    if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
-    res.status(204).send()
-  } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Erro no servidor' })
-  }
-})
-
 // ----- Contacts -----
 router.get('/contacts', async (req, res) => {
   try {

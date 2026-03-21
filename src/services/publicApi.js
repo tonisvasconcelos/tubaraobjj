@@ -30,14 +30,6 @@ export async function getProducts() {
   }
 }
 
-export async function getGallery() {
-  try {
-    return await get('/api/gallery')
-  } catch {
-    return []
-  }
-}
-
 export async function getHighlights() {
   try {
     return await get('/api/highlights')

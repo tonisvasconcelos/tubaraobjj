@@ -91,7 +91,7 @@ Tables and admin user are created on first backend start (db:setup).
 | Team | /team | GET /api/team-members |
 | Addresses | /addresses | GET /api/branches |
 | Store | /store | GET /api/products |
-| Gallery | /gallery | GET /api/gallery |
+| Schedule | /horarios | GET /api/schedules |
 | Contact form (footer) | #contato | POST /api/contacts |
 
 All of these work as long as VITE_API_URL points to the Railway API (already set).

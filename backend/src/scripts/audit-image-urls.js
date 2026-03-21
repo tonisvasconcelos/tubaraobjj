@@ -3,7 +3,6 @@ import pool from '../db/pool.js'
 const targets = [
   { table: 'team_members', id: 'id', column: 'photo_url' },
   { table: 'branches', id: 'id', column: 'photo_url' },
-  { table: 'gallery_items', id: 'id', column: 'image_url' },
   { table: 'highlights', id: 'id', column: 'image_url' },
   { table: 'products', id: 'id', column: 'image_url' },
 ]

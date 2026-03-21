@@ -51,18 +51,6 @@ router.get('/products', async (req, res) => {
   }
 })
 
-router.get('/gallery', async (req, res) => {
-  try {
-    const r = await pool.query(
-      'SELECT id, title, image_url, category, sort_order FROM gallery_items WHERE is_published = true ORDER BY sort_order ASC, created_at DESC'
-    )
-    res.json(r.rows)
-  } catch (e) {
-    console.error(e)
-    res.status(500).json({ error: 'Erro no servidor' })
-  }
-})
-
 router.get('/highlights', async (req, res) => {
   try {
     const r = await pool.query(

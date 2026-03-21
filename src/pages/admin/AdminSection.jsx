@@ -3,7 +3,6 @@ import AdminDashboard from './AdminDashboard'
 import TeamManage from './TeamManage'
 import BranchesManage from './BranchesManage'
 import ProductsManage from './ProductsManage'
-import GalleryManage from './GalleryManage'
 import ContactsList from './ContactsList'
 import HighlightsManage from './HighlightsManage'
 import SchedulesManage from './SchedulesManage'
@@ -12,7 +11,6 @@ const SECTIONS = {
   team: TeamManage,
   branches: BranchesManage,
   products: ProductsManage,
-  gallery: GalleryManage,
   contacts: ContactsList,
   highlights: HighlightsManage,
   schedules: SchedulesManage,

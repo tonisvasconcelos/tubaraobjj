@@ -10,12 +10,11 @@ Prioritized findings and recommendations for **www.tubaraobjj.com** (Vite + Reac
 | 2 | Background video only where needed | H | S | [`src/layouts/MainLayout.jsx`](src/layouts/MainLayout.jsx), [`src/components/BackgroundVideo.jsx`](src/components/BackgroundVideo.jsx) |
 | 3 | Hero / LCP image strategy | H | M | [`src/components/HeroGrid.jsx`](src/components/HeroGrid.jsx) |
 | 4 | Swiper / carousel cost on home | H | S | [`src/components/HighlightsCarousel.jsx`](src/components/HighlightsCarousel.jsx) |
-| 5 | Gallery: many images at once | M | M | [`src/pages/GalleryPage.jsx`](src/pages/GalleryPage.jsx) |
-| 6 | API + static caching / compression | M | M | [`backend/src/index.js`](backend/src/index.js), [`backend/src/routes/public.js`](backend/src/routes/public.js) |
-| 7 | Products API: variant over-fetch | M | S | [`backend/src/routes/public.js`](backend/src/routes/public.js) (`GET /products`) |
-| 8 | Dead dependencies / legacy client | L | S | [`package.json`](package.json), [`src/services/api.js`](src/services/api.js), [`src/hooks/useStrapiData.js`](src/hooks/useStrapiData.js) |
-| 9 | Remote images without responsive sizes | M | M | Team, store, gallery pages + CDN transforms |
-| 10 | Third-party placeholders (e.g. via.placeholder.com) | L | S | [`src/components/HighlightsCarousel.jsx`](src/components/HighlightsCarousel.jsx), [`src/components/AboutSection.jsx`](src/components/AboutSection.jsx) |
+| 5 | API + static caching / compression | M | M | [`backend/src/index.js`](backend/src/index.js), [`backend/src/routes/public.js`](backend/src/routes/public.js) |
+| 6 | Products API: variant over-fetch | M | S | [`backend/src/routes/public.js`](backend/src/routes/public.js) (`GET /products`) |
+| 7 | Dead dependencies / legacy client | L | S | [`package.json`](package.json), [`src/services/api.js`](src/services/api.js), [`src/hooks/useStrapiData.js`](src/hooks/useStrapiData.js) |
+| 8 | Remote images without responsive sizes | M | M | Team, store pages + CDN transforms |
+| 9 | Third-party placeholders (e.g. via.placeholder.com) | L | S | [`src/components/HighlightsCarousel.jsx`](src/components/HighlightsCarousel.jsx), [`src/components/AboutSection.jsx`](src/components/AboutSection.jsx) |
 
 ## 1. Bundle and code splitting
 
@@ -41,37 +40,31 @@ Prioritized findings and recommendations for **www.tubaraobjj.com** (Vite + Reac
 
 **Recommendation:** Lazy-load the carousel when near the viewport, or dynamically import Swiper only inside `HighlightsCarousel`. Trim unused Swiper modules/CSS.
 
-## 5. Gallery
-
-**Finding:** All gallery images may render in the DOM at once.
-
-**Recommendation:** Virtualize the list, use `loading="lazy"`, and `srcset`/`sizes` (or Cloudinary transforms) for thumbnails vs lightbox.
-
-## 6. API and static assets
+## 5. API and static assets
 
 **Finding:** Express serves `/uploads` without strong cache headers; JSON responses may not use CDN-friendly caching.
 
 **Recommendation:** Add `compression` (or rely on Railway/Vercel edge gzip). For immutable filenames, use long `Cache-Control`. For public GET JSON, consider short `s-maxage` + `stale-while-revalidate` or ETags.
 
-## 7. Products + variants
+## 6. Products + variants
 
 **Finding:** Public products endpoint may load all variants in one query without scoping to published products only.
 
 **Recommendation:** Filter variants with a `JOIN` or `WHERE product_id IN (...)` for published products only.
 
-## 8. Dead code / dependencies
+## 7. Dead code / dependencies
 
 **Finding:** `@tanstack/react-query` and `axios` appear unused in active paths; legacy Strapi helpers may be orphaned.
 
 **Recommendation:** Remove unused packages and files, or adopt React Query for caching/deduping fetches (aligns with performance goals).
 
-## 9. Client fetch patterns
+## 8. Client fetch patterns
 
 **Finding:** Per-page `useEffect` + `fetch` refetches on every navigation.
 
 **Recommendation:** Introduce TanStack Query (already listed in dependencies) with `staleTime` and shared keys, or SWR.
 
-## 10. Static images in `public/images`
+## 9. Static images in `public/images`
 
 **Finding:** Many large files under `public/`; only a subset may be referenced.
 

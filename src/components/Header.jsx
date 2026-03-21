@@ -16,7 +16,6 @@ const Header = () => {
     { tKey: 'nav.team', path: '/team' },
     { tKey: 'nav.addresses', path: '/addresses' },
     { tKey: 'nav.store', path: '/store' },
-    { tKey: 'nav.gallery', path: '/gallery' },
     { tKey: 'nav.contact', href: '/', hash: '#contato' },
   ]
 

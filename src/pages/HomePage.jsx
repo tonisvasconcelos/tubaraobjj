@@ -21,7 +21,7 @@ const HomePage = () => {
     <>
       <Seo
         title="GFTeam Tubarão — Jiu-Jitsu em Vila Isabel, Rio de Janeiro"
-        description="Academia GFTeam Tubarão: Jiu-Jitsu para crianças e adultos em Vila Isabel, Rio de Janeiro. Modalidades, horários, equipe, unidades, loja e galeria."
+        description="Academia GFTeam Tubarão: Jiu-Jitsu para crianças e adultos em Vila Isabel, Rio de Janeiro. Modalidades, horários, equipe, unidades e loja."
         jsonLd={getWebSiteSchema()}
       />
       <HeroGrid />

@@ -19,7 +19,7 @@ TubaraoBJJWebsiteREACT/
 │   ├── components/     # Header, Footer, HeroGrid, etc.
 │   ├── contexts/      # AuthContext (admin)
 │   ├── layouts/       # MainLayout
-│   ├── pages/         # HomePage, TeamPage, AddressesPage, StorePage, GalleryPage, Admin
+│   ├── pages/         # HomePage, TeamPage, AddressesPage, StorePage, Admin
 │   ├── services/      # publicApi.js, adminApi.js
 │   └── App.jsx
 ├── backend/
@@ -138,9 +138,9 @@ Referência de variáveis e ordem de redeploy: [docs/ENV_AND_DOMAIN_REFERENCE.md
 - `/team` – Equipe
 - `/addresses` – Unidades
 - `/store` – Loja (catálogo + CTA WhatsApp)
-- `/gallery` – Galeria
+- `/horarios` – Horários
 - `/admin` – Login admin
-- `/admin/team`, `/admin/branches`, `/admin/products`, `/admin/gallery`, `/admin/contacts`, `/admin/highlights` – Gestão de conteúdo (após login)
+- `/admin/team`, `/admin/branches`, `/admin/products`, `/admin/contacts`, `/admin/highlights`, `/admin/schedules` – Gestão de conteúdo (após login)
 
 ## Licença
 

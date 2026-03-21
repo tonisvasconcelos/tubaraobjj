@@ -58,18 +58,6 @@ CREATE TABLE IF NOT EXISTS product_variants (
   UNIQUE(product_id, color, size)
 );
 
--- Gallery items
-CREATE TABLE IF NOT EXISTS gallery_items (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255),
-  image_url VARCHAR(1024) NOT NULL,
-  category VARCHAR(100) DEFAULT 'training',
-  sort_order INT DEFAULT 0,
-  is_published BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- Contacts (messages from website)
 CREATE TABLE IF NOT EXISTS contacts (
   id SERIAL PRIMARY KEY,
@@ -109,6 +97,9 @@ CREATE TABLE IF NOT EXISTS training_schedules (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Gallery feature removed: drop legacy table if it exists
+DROP TABLE IF EXISTS gallery_items;
 `
 
 async function migrate() {

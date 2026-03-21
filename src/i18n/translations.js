@@ -16,7 +16,6 @@ export const translations = {
     'nav.team': 'Equipe',
     'nav.addresses': 'Unidades',
     'nav.store': 'Loja',
-    'nav.gallery': 'Galeria',
     'nav.contact': 'Contato',
 
     'hero.brand': 'tubarão',
@@ -73,15 +72,6 @@ export const translations = {
     'store.variants': 'Variantes',
     'store.buyWhatsapp': 'Comprar via WhatsApp',
 
-    'gallery.title': 'Galeria',
-    'gallery.loading': 'Carregando...',
-    'gallery.empty': 'Fotos de treinos, competições e eventos. Em breve.',
-    'gallery.filterAll': 'Todas',
-    'gallery.cat.training': 'Treino',
-    'gallery.cat.competition': 'Competição',
-    'gallery.cat.event': 'Evento',
-    'gallery.alt': 'Galeria',
-
     'schedule.title': 'Horários',
     'schedule.subtitle': 'Confira os horários das aulas por unidade e dia da semana.',
     'schedule.loading': 'Carregando...',
@@ -129,7 +119,6 @@ export const translations = {
     'nav.team': 'Team',
     'nav.addresses': 'Locations',
     'nav.store': 'Store',
-    'nav.gallery': 'Gallery',
     'nav.contact': 'Contact',
 
     'hero.brand': 'tubarão',
@@ -186,15 +175,6 @@ export const translations = {
     'store.variants': 'Variants',
     'store.buyWhatsapp': 'Buy via WhatsApp',
 
-    'gallery.title': 'Gallery',
-    'gallery.loading': 'Loading...',
-    'gallery.empty': 'Photos from training, competitions, and events. Coming soon.',
-    'gallery.filterAll': 'All',
-    'gallery.cat.training': 'Training',
-    'gallery.cat.competition': 'Competition',
-    'gallery.cat.event': 'Event',
-    'gallery.alt': 'Gallery',
-
     'schedule.title': 'Schedule',
     'schedule.subtitle': 'Class times by location and day of the week.',
     'schedule.loading': 'Loading...',
@@ -242,7 +222,6 @@ export const translations = {
     'nav.team': 'Equipo',
     'nav.addresses': 'Sedes',
     'nav.store': 'Tienda',
-    'nav.gallery': 'Galería',
     'nav.contact': 'Contacto',
 
     'hero.brand': 'tubarão',
@@ -298,15 +277,6 @@ export const translations = {
     'store.empty': 'Productos Tubarão BJJ próximamente. Compra por WhatsApp/Instagram.',
     'store.variants': 'Variantes',
     'store.buyWhatsapp': 'Comprar por WhatsApp',
-
-    'gallery.title': 'Galería',
-    'gallery.loading': 'Cargando...',
-    'gallery.empty': 'Fotos de entrenamientos, competiciones y eventos. Próximamente.',
-    'gallery.filterAll': 'Todas',
-    'gallery.cat.training': 'Entrenamiento',
-    'gallery.cat.competition': 'Competición',
-    'gallery.cat.event': 'Evento',
-    'gallery.alt': 'Galería',
 
     'schedule.title': 'Horarios',
     'schedule.subtitle': 'Consulta los horarios de las clases por sede y día de la semana.',

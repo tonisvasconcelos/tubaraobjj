@@ -1,6 +1,6 @@
 # Tubarão BJJ – API
 
-API Node/Express com PostgreSQL para o site Tubarão BJJ: conteúdo público (equipe, unidades, loja, galeria, destaques, contatos) e painel admin (JWT).
+API Node/Express com PostgreSQL para o site Tubarão BJJ: conteúdo público (equipe, unidades, loja, destaques, contatos) e painel admin (JWT).
 
 ## Variáveis de ambiente
 
@@ -41,7 +41,6 @@ npm start            # servidor produção
 - `/api/team-members` – equipe publicada
 - `/api/branches` – unidades publicadas
 - `/api/products` – produtos com variantes
-- `/api/gallery` – galeria publicada
 - `/api/highlights` – destaques publicados
 
 ## Endpoints públicos (POST)
@@ -51,6 +50,6 @@ npm start            # servidor produção
 
 ## Admin (Header: `Authorization: Bearer <token>`)
 
-- `GET/POST/PUT/DELETE` em `/api/admin/team-members`, `branches`, `products`, `gallery`, `highlights`
+- `GET/POST/PUT/DELETE` em `/api/admin/team-members`, `branches`, `products`, `highlights`
 - `GET` e `PATCH .../read` em `/api/admin/contacts`
 - `POST /api/admin/upload` – multipart file → `{ url }`

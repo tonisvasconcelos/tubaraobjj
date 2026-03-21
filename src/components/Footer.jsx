@@ -26,7 +26,6 @@ const Footer = () => {
     { tKey: 'nav.team', to: '/team' },
     { tKey: 'nav.addresses', to: '/addresses' },
     { tKey: 'nav.store', to: '/store' },
-    { tKey: 'nav.gallery', to: '/gallery' },
     { tKey: 'nav.contact', to: '/', hash: '#contato' },
   ]
 
