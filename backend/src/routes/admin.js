@@ -5,6 +5,31 @@ import { upload, saveUpload } from '../middleware/upload.js'
 
 const router = express.Router()
 router.use(authMiddleware)
+const isProduction = process.env.NODE_ENV === 'production'
+
+function isValidUploadUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  const trimmed = url.trim()
+  if (!trimmed) return false
+
+  // In production we only accept absolute HTTPS URLs.
+  if (isProduction) {
+    try {
+      const parsed = new URL(trimmed)
+      return parsed.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
+
+  if (trimmed.startsWith('/uploads/')) return true
+  try {
+    const parsed = new URL(trimmed)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
 
 // ----- Upload (single image) -----
 router.post('/upload', upload.single('file'), async (req, res) => {
@@ -13,6 +38,9 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Nenhum arquivo enviado' })
     }
     const url = await saveUpload(req.file)
+    if (!isValidUploadUrl(url)) {
+      return res.status(500).json({ error: 'URL de upload inválida gerada pelo servidor' })
+    }
     return res.json({ url })
   } catch (e) {
     console.error(e)

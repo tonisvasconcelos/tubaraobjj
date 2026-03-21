@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getBranches } from '../services/publicApi'
 import { MapPin } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
+import Seo from '../components/seo/Seo'
 
 export default function AddressesPage() {
   const { t } = useLanguage()
@@ -16,6 +17,11 @@ export default function AddressesPage() {
   }, [])
 
   return (
+    <>
+      <Seo
+        title="Unidades e endereços — GFTeam Tubarão"
+        description="Onde treinar: unidades e endereços da GFTeam Tubarão no Rio de Janeiro. Encontre a academia mais próxima e venha conhecer nossas aulas de Jiu-Jitsu."
+      />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-12">
@@ -56,5 +62,6 @@ export default function AddressesPage() {
         )}
       </div>
     </section>
+    </>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getSchedules } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
+import Seo from '../components/seo/Seo'
 
 function formatTime(t) {
   if (t == null || t === '') return ''
@@ -47,6 +48,11 @@ export default function SchedulePage() {
   )
 
   return (
+    <>
+      <Seo
+        title="Horários das aulas — GFTeam Tubarão"
+        description="Horários de treino da GFTeam Tubarão por unidade e dia da semana. Planeje suas aulas de Jiu-Jitsu no Rio de Janeiro."
+      />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-4">
@@ -103,5 +109,6 @@ export default function SchedulePage() {
         )}
       </div>
     </section>
+    </>
   )
 }

@@ -18,8 +18,12 @@ Admin and public site are the **same Vercel deployment**; the admin UI calls the
 |----------|--------|---------|
 | `VITE_API_URL` | Vercel **Production** env, build time | Base URL for `src/services/publicApi.js` and `src/services/adminApi.js` |
 | `VITE_BASE_URL` | Vercel **Production** env, build time | Vite `base` in `vite.config.js`; use **`/`** for root custom domain |
+| `VITE_SITE_URL` | Vercel **Production** env, build time | Canonical site origin for SEO (`src/seo/siteConfig.js`), e.g. `https://www.tubaraobjj.com` |
 | `CORS_ORIGIN` | Railway **api** service | Comma-separated browser origins allowed by `backend/src/index.js` |
 | `API_PUBLIC_URL` | Railway **api** service | Public API origin for absolute upload URLs in `backend/src/middleware/upload.js` |
+| `CLOUDINARY_CLOUD_NAME` | Railway **api** service | Cloudinary cloud name used by admin image uploads in production |
+| `CLOUDINARY_API_KEY` | Railway **api** service | Cloudinary API key used by admin image uploads in production |
+| `CLOUDINARY_API_SECRET` | Railway **api** service | Cloudinary API secret used by admin image uploads in production |
 | `DATABASE_URL` | Railway **api** service | Neon PostgreSQL connection string |
 
 ---
@@ -29,6 +33,7 @@ Admin and public site are the **same Vercel deployment**; the admin UI calls the
 ```env
 VITE_BASE_URL=/
 VITE_API_URL=https://api-production-a236.up.railway.app
+VITE_SITE_URL=https://www.tubaraobjj.com
 ```
 
 Use your real Railway API hostname if it is not `api-production-a236`.
@@ -54,7 +59,20 @@ Add more origins separated by commas if needed, for example:
 API_PUBLIC_URL=https://api-production-a236.up.railway.app
 ```
 
+**Cloudinary (required in production):**
+
+```env
+CLOUDINARY_CLOUD_NAME=your_real_cloud_name
+CLOUDINARY_API_KEY=your_real_api_key
+CLOUDINARY_API_SECRET=your_real_api_secret
+```
+
 **Neon:** keep existing `DATABASE_URL` from the Neon dashboard (unchanged when only the frontend domain changes).
+
+Upload behavior:
+
+- `NODE_ENV=production`: upload endpoint only accepts durable storage (Cloudinary) and only returns absolute HTTPS URLs.
+- non-production/local: local `/uploads/...` fallback is still allowed for development.
 
 ---
 

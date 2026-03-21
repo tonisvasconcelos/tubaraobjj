@@ -30,6 +30,7 @@ Review of everything needed to have the **public website** and **admin portal** 
 | ADMIN_EMAIL / ADMIN_PASSWORD | ✅ | admin@tubaraobjj.com / TubaraoAdmin2026 |
 | CORS_ORIGIN | ✅ | Must include `https://www.tubaraobjj.com` (+ localhost for dev; optional legacy `*.vercel.app`) |
 | API_PUBLIC_URL | ✅ | https://api-production-a236.up.railway.app |
+| CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY / CLOUDINARY_API_SECRET | ⚠️ | Required for production admin uploads. Without these values, upload endpoint returns error and will not save image URLs. |
 | Start command | ✅ | `npm run db:setup && npm start` (creates tables + admin on first run) |
 | Healthcheck | ✅ | `/api/health` |
 | Public domain | ✅ | https://api-production-a236.up.railway.app |
@@ -38,7 +39,7 @@ Review of everything needed to have the **public website** and **admin portal** 
 
 | Item | Status | Action if missing |
 |------|--------|--------------------|
-| Cloudinary (image uploads) | ⚠️ | Variables are placeholders (`your_cloud_name`, etc.). **To enable:** replace with real Cloudinary credentials in Railway → api → Variables. Without this, admin image uploads use local disk and are lost on redeploy. |
+| GitHub Pages | ⚠️ | Optional/legacy static host. Vercel is canonical production host. |
 
 ---
 
@@ -118,8 +119,8 @@ The repo has a workflow `.github/workflows/deploy.yml` that can deploy to **GitH
 
 ## 8. Summary: what’s missing
 
-1. **Cloudinary (optional but recommended)**  
-   Replace placeholder Cloudinary variables in Railway with real values so admin image uploads are stored permanently.
+1. **Cloudinary (required for production uploads)**  
+   Replace placeholder Cloudinary variables in Railway with real values. Production upload now rejects non-durable storage by design.
 
 2. **Railway Root Directory (if using GitHub deploy)**  
    For the **api** service, set Root Directory = `backend` so build/start run in the backend folder.
@@ -141,6 +142,7 @@ After any Railway or Neon change, confirm from a browser or `curl`:
   - If this returns **404**, redeploy the **api** service from the current `backend` code (older images may not expose this route yet).
   - If this returns **500** or `"db":"error"`, Railway cannot reach Neon — check `DATABASE_URL`, Neon project status, and allowlists.
 - **Login:** `POST https://api-production-a236.up.railway.app/api/auth/login` with body `{"email":"admin@tubaraobjj.com","password":"TubaraoAdmin2026"}` → `{ "token", "user" }`
+- **Image URL audit:** from `backend/`, run `npm run audit:image-urls` and verify no critical content depends on relative `/uploads/...` paths.
 
 **Frontend (after Vercel env + redeploy):**
 

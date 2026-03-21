@@ -7,6 +7,7 @@ import { v2 as cloudinary } from 'cloudinary'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../../uploads')
 const cloudinaryFolder = process.env.CLOUDINARY_FOLDER || 'tubaraobjj'
+const isProduction = process.env.NODE_ENV === 'production'
 
 function isConfiguredValue(value) {
   const normalized = String(value || '').trim()
@@ -75,10 +76,16 @@ export async function saveUpload(file) {
   if (!file) {
     throw new Error('No file provided')
   }
+  if (isProduction && !hasCloudinaryConfig) {
+    throw new Error('Cloudinary is required for uploads in production')
+  }
   if (hasCloudinaryConfig) {
     try {
       return await uploadToCloudinary(file)
     } catch (err) {
+      if (isProduction) {
+        throw new Error('Cloudinary upload failed in production')
+      }
       console.warn('Cloudinary upload failed, falling back to local storage:', err?.message || err)
     }
   }

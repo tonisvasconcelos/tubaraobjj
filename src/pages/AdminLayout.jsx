@@ -1,5 +1,12 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../contexts/AuthContext'
+
+const adminSeoHelmet = (
+  <Helmet>
+    <meta name="robots" content="noindex, nofollow" />
+  </Helmet>
+)
 
 export default function AdminLayout() {
   const { token } = useAuth()
@@ -8,14 +15,34 @@ export default function AdminLayout() {
 
   if (!token) {
     if (isIndex) {
-      return <Outlet />
+      return (
+        <>
+          {adminSeoHelmet}
+          <Outlet />
+        </>
+      )
     }
-    return <Navigate to="/admin" replace />
+    return (
+      <>
+        {adminSeoHelmet}
+        <Navigate to="/admin" replace />
+      </>
+    )
   }
 
   if (isIndex) {
-    return <Navigate to="/admin/team" replace />
+    return (
+      <>
+        {adminSeoHelmet}
+        <Navigate to="/admin/team" replace />
+      </>
+    )
   }
 
-  return <Outlet />
+  return (
+    <>
+      {adminSeoHelmet}
+      <Outlet />
+    </>
+  )
 }

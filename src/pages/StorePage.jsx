@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { getProducts } from '../services/publicApi'
 import { ShoppingBag } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
+import Seo from '../components/seo/Seo'
 
 export default function StorePage() {
   const { lang, t } = useLanguage()
@@ -22,6 +23,11 @@ export default function StorePage() {
   }
 
   return (
+    <>
+      <Seo
+        title="Loja — kimonos e equipamentos GFTeam Tubarão"
+        description="Produtos e equipamentos da GFTeam Tubarão: kimonos, rashguards e itens da loja oficial. Compre com a equipe e treine com qualidade."
+      />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-12">
@@ -77,5 +83,6 @@ export default function StorePage() {
         )}
       </div>
     </section>
+    </>
   )
 }

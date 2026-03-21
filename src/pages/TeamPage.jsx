@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTeamMembers } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
+import Seo from '../components/seo/Seo'
 
 export default function TeamPage() {
   const { t } = useLanguage()
@@ -15,6 +16,11 @@ export default function TeamPage() {
   }, [])
 
   return (
+    <>
+      <Seo
+        title="Equipe e professores — GFTeam Tubarão"
+        description="Conheça a equipe da GFTeam Tubarão: professores e instrutores de Jiu-Jitsu no Rio de Janeiro. Experiência, graduações e aulas para todos os níveis."
+      />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-12">
@@ -57,5 +63,6 @@ export default function TeamPage() {
         )}
       </div>
     </section>
+    </>
   )
 }

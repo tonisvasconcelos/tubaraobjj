@@ -5,6 +5,8 @@ import AboutSection from '../components/AboutSection'
 import Programmes from '../components/Programmes'
 import JoinFamily from '../components/JoinFamily'
 import HighlightsCarousel from '../components/HighlightsCarousel'
+import Seo from '../components/seo/Seo'
+import { getWebSiteSchema } from '../seo/organizationSchema'
 
 const HomePage = () => {
   const location = useLocation()
@@ -17,6 +19,11 @@ const HomePage = () => {
 
   return (
     <>
+      <Seo
+        title="GFTeam Tubarão — Jiu-Jitsu em Vila Isabel, Rio de Janeiro"
+        description="Academia GFTeam Tubarão: Jiu-Jitsu para crianças e adultos em Vila Isabel, Rio de Janeiro. Modalidades, horários, equipe, unidades, loja e galeria."
+        jsonLd={getWebSiteSchema()}
+      />
       <HeroGrid />
       <AboutSection />
       <Programmes />

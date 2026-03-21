@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getGallery } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
+import Seo from '../components/seo/Seo'
 
 const GALLERY_CATEGORIES = ['training', 'competition', 'event']
 
@@ -20,6 +21,11 @@ export default function GalleryPage() {
   const filtered = filter === 'all' ? items : items.filter((i) => i.category === filter)
 
   return (
+    <>
+      <Seo
+        title="Galeria de fotos — GFTeam Tubarão"
+        description="Fotos da GFTeam Tubarão: treinos, competições e eventos. Veja a rotina da academia de Jiu-Jitsu em Vila Isabel, Rio de Janeiro."
+      />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-8">
@@ -75,5 +81,6 @@ export default function GalleryPage() {
         )}
       </div>
     </section>
+    </>
   )
 }
