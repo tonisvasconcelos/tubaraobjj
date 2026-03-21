@@ -24,11 +24,8 @@ export function getOrganizationSchema() {
       addressRegion: 'RJ',
       addressCountry: 'BR',
     },
-    telephone: '+55-21-1234-5678',
-    sameAs: [
-      'https://instagram.com/gfteamtubarao',
-      'https://facebook.com/gfteamtubarao',
-    ],
+    telephone: '+552135708502',
+    sameAs: ['https://instagram.com/gfteamtubarao'],
   }
 }
 

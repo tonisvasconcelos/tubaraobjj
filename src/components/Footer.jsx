@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react'
+import { Instagram, Phone, MapPin } from 'lucide-react'
 import { submitContact } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
 
 const Footer = () => {
   const { t } = useLanguage()
-  const [email, setEmail] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [newsletterOk, setNewsletterOk] = useState(false)
   const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', message: '' })
   const [contactSubmitting, setContactSubmitting] = useState(false)
   const [contactStatus, setContactStatus] = useState(null)
@@ -17,10 +14,9 @@ const Footer = () => {
 
   const companyInfo = {
     address: 'Rua Teodoro da Silva 725, Vila Isabel – Rio de Janeiro',
-    phone: '(21) 1234-5678',
-    email: 'contato@gfteamtubarao.com.br',
+    phoneDisplay: '+55 21 3570 8502',
+    phoneTel: '+552135708502',
     instagramUrl: 'https://instagram.com/gfteamtubarao',
-    facebookUrl: 'https://facebook.com/gfteamtubarao',
   }
 
   const quickLinks = [
@@ -40,17 +36,6 @@ const Footer = () => {
       const element = document.querySelector(hash)
       if (element) element.scrollIntoView({ behavior: 'smooth' })
     }
-  }
-
-  const handleNewsletterSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setNewsletterOk(false)
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setNewsletterOk(true)
-      setEmail('')
-    }, 1000)
   }
 
   const handleContactSubmit = async (e) => {
@@ -125,7 +110,7 @@ const Footer = () => {
           </form>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8 lg:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-8 lg:mb-12">
           <div className="lg:col-span-1">
             <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-center sm:text-left">
               {t('footer.brand')}
@@ -165,49 +150,15 @@ const Footer = () => {
               </li>
               <li className="flex items-center justify-center sm:justify-start space-x-2">
                 <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300 flex-shrink-0" />
-                <a href={`tel:${companyInfo.phone}`} className="hover:text-white transition-colors">
-                  {companyInfo.phone}
-                </a>
-              </li>
-              <li className="flex items-center justify-center sm:justify-start space-x-2">
-                <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300 flex-shrink-0" />
-                <a href={`mailto:${companyInfo.email}`} className="hover:text-white transition-colors">
-                  {companyInfo.email}
+                <a href={`tel:${companyInfo.phoneTel}`} className="hover:text-white transition-colors">
+                  {companyInfo.phoneDisplay}
                 </a>
               </li>
             </ul>
           </div>
-
-          <div>
-            <h4 className="text-lg sm:text-xl font-semibold mb-4 text-center sm:text-left">
-              {t('footer.newsletter')}
-            </h4>
-            <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t('footer.placeholder.newsletterEmail')}
-                required
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:ring-2 focus:ring-white/30 focus:border-transparent outline-none transition-all text-sm sm:text-base"
-              />
-              {newsletterOk && (
-                <div className="p-2 bg-green-900 text-green-100 rounded-lg text-xs sm:text-sm">
-                  {t('footer.newsletterSuccess')}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-white/90 hover:bg-white text-slate-900 font-semibold px-4 py-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-              >
-                {isSubmitting ? t('footer.sending') : t('footer.subscribe')}
-              </button>
-            </form>
-          </div>
         </div>
 
-        <div className="flex justify-center space-x-6 mb-8 lg:mb-12">
+        <div className="flex justify-center mb-8 lg:mb-12">
           <a
             href={companyInfo.instagramUrl}
             target="_blank"
@@ -216,15 +167,6 @@ const Footer = () => {
             aria-label="Instagram"
           >
             <Instagram className="w-5 h-5 sm:w-6 sm:h-6 text-slate-300" />
-          </a>
-          <a
-            href={companyInfo.facebookUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors duration-200"
-            aria-label="Facebook"
-          >
-            <Facebook className="w-5 h-5 sm:w-6 sm:h-6 text-slate-300" />
           </a>
         </div>
 
