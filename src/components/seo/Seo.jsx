@@ -20,6 +20,7 @@ export default function Seo({
   /** Absolute URL or path under public site */
   ogImage,
   jsonLd,
+  breadcrumbs = [],
 }) {
   const { pathname } = useLocation()
   const canonical = canonicalUrlForPathname(pathname)
@@ -28,12 +29,42 @@ export default function Seo({
       ? ogImage
       : absolutePublicUrl(ogImage || DEFAULT_OG_IMAGE_PATH)
 
+  const breadcrumbLd =
+    Array.isArray(breadcrumbs) && breadcrumbs.length > 0
+      ? {
+          '@type': 'BreadcrumbList',
+          itemListElement: breadcrumbs.map((crumb, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: crumb.name,
+            item: canonicalUrlForPathname(crumb.path),
+          })),
+        }
+      : null
+
+  const ldEntries = []
+  if (jsonLd != null) {
+    if (Array.isArray(jsonLd)) {
+      ldEntries.push(...jsonLd)
+    } else {
+      ldEntries.push(jsonLd)
+    }
+  }
+  if (breadcrumbLd) ldEntries.push(breadcrumbLd)
+
   const ldPayload =
-    jsonLd == null
+    ldEntries.length === 0
       ? null
-      : Array.isArray(jsonLd)
-        ? { '@context': 'https://schema.org', '@graph': jsonLd }
-        : jsonLd
+      : ldEntries.length === 1 && !breadcrumbLd
+        ? ldEntries[0]
+        : {
+            '@context': 'https://schema.org',
+            '@graph': ldEntries.map((entry) => {
+              const normalized = { ...entry }
+              delete normalized['@context']
+              return normalized
+            }),
+          }
 
   return (
     <Helmet prioritizeSeoTags>

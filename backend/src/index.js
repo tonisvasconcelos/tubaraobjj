@@ -9,6 +9,14 @@ import pool from './db/pool.js'
 import authRoutes from './routes/auth.js'
 import publicRoutes from './routes/public.js'
 import adminRoutes from './routes/admin.js'
+import leadsRoutes from './routes/leads.js'
+import checkoutRoutes from './routes/checkout.js'
+import paymentsRoutes from './routes/payments.js'
+import plansRoutes from './routes/plans.js'
+import ordersRoutes from './routes/orders.js'
+import subscriptionsRoutes from './routes/subscriptions.js'
+import couponsRoutes from './routes/coupons.js'
+import { requestContext } from './middleware/requestContext.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../uploads')
@@ -19,6 +27,7 @@ const app = express()
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173'
 app.use(cors({ origin: corsOrigin.split(',').map((o) => o.trim()), credentials: true }))
 app.use(express.json())
+app.use(requestContext)
 
 try {
   fs.mkdirSync(uploadDir, { recursive: true })
@@ -27,6 +36,13 @@ app.use('/uploads', express.static(uploadDir))
 
 app.use('/api/auth', authRoutes)
 app.use('/api', publicRoutes)
+app.use('/api/leads', leadsRoutes)
+app.use('/api/checkout', checkoutRoutes)
+app.use('/api/payments', paymentsRoutes)
+app.use('/api/plans', plansRoutes)
+app.use('/api/orders', ordersRoutes)
+app.use('/api/subscriptions', subscriptionsRoutes)
+app.use('/api/coupons', couponsRoutes)
 app.use('/api/admin', adminRoutes)
 
 app.get('/api/health', (req, res) => {

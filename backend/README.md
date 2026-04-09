@@ -12,8 +12,11 @@ Copie `.env.example` para `.env` e preencha:
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` – login do admin (usado no seed)
 - `CORS_ORIGIN` – origem(s) do frontend, separadas por vírgula (ex.: `https://www.tubaraobjj.com,http://localhost:5173`)
 - `API_PUBLIC_URL` – URL pública da API (para URLs de imagens)
+- `APP_PUBLIC_URL` – URL pública do frontend (back URLs de checkout)
 - `UPLOAD_DIR` – pasta de uploads (default `./uploads`)
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` – recomendado para produção no Railway (persistência de imagens)
+- `PAYMENT_PROVIDER` – provider principal (default: `mercadopago`)
+- `MP_ACCESS_TOKEN` – token do Mercado Pago para checkout/webhooks
 
 ## Banco de dados (Neon)
 
@@ -47,6 +50,13 @@ npm start            # servidor produção
 
 - `/api/auth/login` – body: `{ email, password }` → `{ token, user }`
 - `/api/contacts` – body: `{ name, email, phone?, message }`
+- `/api/leads/trial` – body: `{ name, email, phone, interestProgram?, preferredTime?, notes? }`
+- `/api/checkout/session` – cria sessão de checkout e retorna `checkoutUrl`
+- `/api/payments/webhook` – webhook de atualização de pagamento
+- `/api/coupons/validate` – valida cupom (future-ready)
+- `/api/plans` – lista planos ativos
+- `/api/orders/:id?email=...` – consulta pedido por id + email
+- `/api/subscriptions/portal?email=...` – lista assinaturas do cliente
 
 ## Admin (Header: `Authorization: Bearer <token>`)
 

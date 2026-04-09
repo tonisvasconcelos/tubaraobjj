@@ -21,6 +21,10 @@ export default function AddressesPage() {
       <Seo
         title="Unidades e endereços — GFTeam Tubarão"
         description="Onde treinar: unidades e endereços da GFTeam Tubarão no Rio de Janeiro. Encontre a academia mais próxima e venha conhecer nossas aulas de Jiu-Jitsu."
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Unidades', path: '/addresses' },
+        ]}
       />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,6 +49,8 @@ export default function AddressesPage() {
                     <img
                       src={branch.photo_url}
                       alt={branch.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>

@@ -105,6 +105,8 @@ Saída em `dist/`. Para Vercel, o padrão já é `VITE_BASE_URL=/`.
 2. Defina as variáveis de ambiente (Production):
    - `VITE_API_URL` = URL pública do backend no Railway (ex.: `https://api-production-a236.up.railway.app`)
    - `VITE_BASE_URL` = `/` (domínio customizado na raiz, ex.: **https://www.tubaraobjj.com**)
+   - `VITE_SITE_URL` = `https://www.tubaraobjj.com`
+   - (opcional) `VITE_GA_MEASUREMENT_ID`, `VITE_GTM_ID` para tracking de eventos
 3. No Vercel: **Settings → Domains** — adicione `www.tubaraobjj.com` e configure o DNS na GoDaddy (veja [docs/CUSTOM_DOMAIN_VERCEL_GODADDY.md](docs/CUSTOM_DOMAIN_VERCEL_GODADDY.md)).
 4. Build command: `npm run build`; output: `dist`.
 
@@ -138,6 +140,7 @@ Referência de variáveis e ordem de redeploy: [docs/ENV_AND_DOMAIN_REFERENCE.md
 - `/team` – Equipe
 - `/addresses` – Unidades
 - `/store` – Loja (catálogo + CTA WhatsApp)
+- `/aula-experimental` – Landing de conversão para lead de aula experimental
 - `/horarios` – Horários
 - `/admin` – Login admin
 - `/admin/team`, `/admin/branches`, `/admin/products`, `/admin/contacts`, `/admin/highlights`, `/admin/schedules` – Gestão de conteúdo (após login)
@@ -145,3 +148,14 @@ Referência de variáveis e ordem de redeploy: [docs/ENV_AND_DOMAIN_REFERENCE.md
 ## Licença
 
 Todos os direitos reservados GFTeam Tubarão.
+
+## Gate de staging antes de produção
+
+Antes de publicar em `https://www.tubaraobjj.com`, valide em URL temporária:
+
+1. frontend em Vercel Preview;
+2. backend em endpoint de staging;
+3. fluxos críticos: formulário de contato, aula experimental, checkout sandbox e webhook;
+4. SEO técnico: canonical, metadata por rota, `robots.txt` e `sitemap.xml`.
+
+Checklist completo: [`docs/BASELINE_AND_RELEASE_CHECKLIST.md`](docs/BASELINE_AND_RELEASE_CHECKLIST.md).

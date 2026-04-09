@@ -56,3 +56,33 @@ export async function submitContact(data) {
   if (!res.ok) throw new Error(result.error || 'Falha ao enviar')
   return result
 }
+
+export async function submitTrialLead(data) {
+  const res = await fetch(`${API_URL}/api/leads/trial`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const result = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(result.error || 'Falha ao enviar')
+  return result
+}
+
+export async function createCheckoutSession(data) {
+  const res = await fetch(`${API_URL}/api/checkout/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const result = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(result.error || 'Falha ao iniciar checkout')
+  return result
+}
+
+export async function getPlans() {
+  try {
+    return await get('/api/plans')
+  } catch {
+    return []
+  }
+}

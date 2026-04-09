@@ -13,6 +13,7 @@ const Header = () => {
     { tKey: 'nav.about', href: '/', hash: '#quem-somos' },
     { tKey: 'nav.programmes', href: '/', hash: '#modalidades' },
     { tKey: 'nav.schedule', path: '/horarios' },
+    { tKey: 'nav.trial', path: '/aula-experimental' },
     { tKey: 'nav.team', path: '/team' },
     { tKey: 'nav.addresses', path: '/addresses' },
     { tKey: 'nav.store', path: '/store' },
@@ -63,12 +64,15 @@ const Header = () => {
                 <img
                   src={`${baseUrl}images/20397a70-3e6a-4a70-a2cd-e6ad51a59c6e.png`}
                   alt="Tubarão logo"
+                  width="96"
+                  height="96"
+                  fetchPriority="high"
                   className="h-10 sm:h-12 md:h-14 w-auto"
                 />
-                <h1 className="h-10 sm:h-12 md:h-14 flex items-center text-xl sm:text-2xl lg:text-3xl text-left text-slate-900 leading-none">
+                <p className="h-10 sm:h-12 md:h-14 flex items-center text-xl sm:text-2xl lg:text-3xl text-left text-slate-900 leading-none">
                   <span className="font-extrabold mr-1">tubarão</span>
                   <span className="font-medium tracking-wide text-slate-700">jiu‑jitsu</span>
-                </h1>
+                </p>
               </Link>
             </div>
           </div>

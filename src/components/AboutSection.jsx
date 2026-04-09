@@ -14,6 +14,10 @@ const AboutSection = () => {
           <img
             src={aboutData.professorImage}
             alt={t('about.quoteAuthor')}
+            width="1400"
+            height="800"
+            fetchPriority="high"
+            decoding="async"
             className="h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full object-cover opacity-80"
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/1400x800/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'

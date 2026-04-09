@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { Instagram, Phone, MapPin } from 'lucide-react'
 import { submitContact } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
+import { trackEvent } from '../lib/analytics'
 
 const Footer = () => {
   const { t } = useLanguage()
@@ -23,6 +24,7 @@ const Footer = () => {
     { tKey: 'nav.about', to: '/', hash: '#quem-somos' },
     { tKey: 'nav.programmes', to: '/', hash: '#modalidades' },
     { tKey: 'nav.schedule', to: '/horarios' },
+    { tKey: 'nav.trial', to: '/aula-experimental' },
     { tKey: 'nav.team', to: '/team' },
     { tKey: 'nav.addresses', to: '/addresses' },
     { tKey: 'nav.store', to: '/store' },
@@ -45,8 +47,10 @@ const Footer = () => {
       await submitContact(contactForm)
       setContactStatus('success')
       setContactForm({ name: '', email: '', phone: '', message: '' })
+      trackEvent('contact_submit', { source: 'footer_form' })
     } catch (err) {
       setContactStatus('error')
+      trackEvent('contact_submit_error', { source: 'footer_form' })
     } finally {
       setContactSubmitting(false)
     }
@@ -149,7 +153,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center justify-center sm:justify-start space-x-2">
                 <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-slate-300 flex-shrink-0" />
-                <a href={`tel:${companyInfo.phoneTel}`} className="hover:text-white transition-colors">
+                <a
+                  href={`tel:${companyInfo.phoneTel}`}
+                  onClick={() => trackEvent('call_click', { source: 'footer' })}
+                  className="hover:text-white transition-colors"
+                >
                   {companyInfo.phoneDisplay}
                 </a>
               </li>
@@ -162,6 +170,7 @@ const Footer = () => {
             href={companyInfo.instagramUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent('instagram_click', { source: 'footer' })}
             className="p-3 bg-slate-800 hover:bg-slate-700 rounded-full transition-colors duration-200"
             aria-label="Instagram"
           >

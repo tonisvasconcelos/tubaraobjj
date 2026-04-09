@@ -1,14 +1,25 @@
+import { Suspense, lazy } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { LanguageProvider } from './i18n/LanguageProvider'
-import MainLayout from './layouts/MainLayout'
-import AdminLayout from './pages/AdminLayout'
-import HomePage from './pages/HomePage'
-import TeamPage from './pages/TeamPage'
-import AddressesPage from './pages/AddressesPage'
-import StorePage from './pages/StorePage'
-import SchedulePage from './pages/SchedulePage'
-import AdminLoginPage from './pages/AdminLoginPage'
-import AdminSection from './pages/admin/AdminSection'
+
+const MainLayout = lazy(() => import('./layouts/MainLayout'))
+const AdminLayout = lazy(() => import('./pages/AdminLayout'))
+const HomePage = lazy(() => import('./pages/HomePage'))
+const TeamPage = lazy(() => import('./pages/TeamPage'))
+const AddressesPage = lazy(() => import('./pages/AddressesPage'))
+const StorePage = lazy(() => import('./pages/StorePage'))
+const SchedulePage = lazy(() => import('./pages/SchedulePage'))
+const TrialClassPage = lazy(() => import('./pages/TrialClassPage'))
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
+const AdminSection = lazy(() => import('./pages/admin/AdminSection'))
+
+function RouteFallback() {
+  return (
+    <div className="min-h-[40vh] flex items-center justify-center px-4">
+      <p className="text-slate-600 text-sm sm:text-base">Carregando...</p>
+    </div>
+  )
+}
 
 const router = createBrowserRouter(
   [
@@ -21,6 +32,7 @@ const router = createBrowserRouter(
         { path: 'addresses', element: <AddressesPage /> },
         { path: 'store', element: <StorePage /> },
         { path: 'horarios', element: <SchedulePage /> },
+        { path: 'aula-experimental', element: <TrialClassPage /> },
       ],
     },
     {
@@ -38,7 +50,9 @@ const router = createBrowserRouter(
 function App() {
   return (
     <LanguageProvider>
-      <RouterProvider router={router} />
+      <Suspense fallback={<RouteFallback />}>
+        <RouterProvider router={router} />
+      </Suspense>
     </LanguageProvider>
   )
 }

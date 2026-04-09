@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { getProducts } from '../services/publicApi'
-import { ShoppingBag } from 'lucide-react'
+import { createCheckoutSession, getProducts } from '../services/publicApi'
+import { CreditCard, ShoppingBag } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
 import Seo from '../components/seo/Seo'
+import { trackEvent } from '../lib/analytics'
 
 export default function StorePage() {
   const { lang, t } = useLanguage()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [checkoutPendingId, setCheckoutPendingId] = useState(null)
 
   useEffect(() => {
     getProducts()
@@ -22,11 +24,49 @@ export default function StorePage() {
     return new Intl.NumberFormat(priceLocale, { style: 'currency', currency: 'BRL' }).format(n)
   }
 
+  const startCheckout = async (product) => {
+    setCheckoutPendingId(product.id)
+    try {
+      const session = await createCheckoutSession({
+        customer: {
+          name: 'Cliente site',
+          email: 'checkout@tubaraobjj.com',
+        },
+        items: [{ productId: product.id, quantity: 1 }],
+        metadata: { source: 'store_page' },
+      })
+
+      trackEvent('checkout_start', {
+        source: 'store_page',
+        product_id: product.id,
+      })
+
+      if (session.checkoutUrl) {
+        window.location.href = session.checkoutUrl
+        return
+      }
+
+      throw new Error('Checkout indisponivel no momento')
+    } catch (_) {
+      trackEvent('checkout_error', {
+        source: 'store_page',
+        product_id: product.id,
+      })
+      alert(t('store.checkoutError'))
+    } finally {
+      setCheckoutPendingId(null)
+    }
+  }
+
   return (
     <>
       <Seo
         title="Loja — kimonos e equipamentos GFTeam Tubarão"
         description="Produtos e equipamentos da GFTeam Tubarão: kimonos, rashguards e itens da loja oficial. Compre com a equipe e treine com qualidade."
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Loja', path: '/store' },
+        ]}
       />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -51,6 +91,8 @@ export default function StorePage() {
                     <img
                       src={product.image_url}
                       alt={product.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -71,11 +113,23 @@ export default function StorePage() {
                     href={product.whatsapp_link || 'https://wa.me/'}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() =>
+                      trackEvent('whatsapp_click', { source: 'store_page', product_id: product.id })
+                    }
                     className="mt-4 inline-flex items-center justify-center gap-2 w-full py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors"
                   >
                     <ShoppingBag className="w-5 h-5" />
                     {t('store.buyWhatsapp')}
                   </a>
+                  <button
+                    type="button"
+                    disabled={checkoutPendingId === product.id}
+                    onClick={() => startCheckout(product)}
+                    className="mt-2 inline-flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-500 transition-colors disabled:opacity-60"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    {checkoutPendingId === product.id ? t('store.checkoutLoading') : t('store.checkout')}
+                  </button>
                 </div>
               </article>
             ))}

@@ -13,6 +13,7 @@ export const translations = {
     'nav.about': 'Quem Somos',
     'nav.programmes': 'Aulas e Modalidades',
     'nav.schedule': 'Horários',
+    'nav.trial': 'Aula Experimental',
     'nav.team': 'Equipe',
     'nav.addresses': 'Unidades',
     'nav.store': 'Loja',
@@ -55,6 +56,20 @@ export const translations = {
       'Venha fazer uma aula experimental e conheça nossa metodologia. Oferecemos aulas para todos os níveis e idades.',
     'join.cta': 'Agendar aula experimental',
 
+    'trial.title': 'Agende sua aula experimental',
+    'trial.subtitle':
+      'Preencha o formulário e nossa equipe vai entrar em contato para confirmar o melhor horário para você.',
+    'trial.placeholder.name': 'Nome completo',
+    'trial.placeholder.email': 'Email',
+    'trial.placeholder.phone': 'Telefone com WhatsApp',
+    'trial.placeholder.program': 'Interesse (opcional): Infantil, Adulto, Feminino...',
+    'trial.placeholder.time': 'Melhor horário para treinar (opcional)',
+    'trial.placeholder.notes': 'Observações (opcional)',
+    'trial.submit': 'Enviar e agendar',
+    'trial.submitting': 'Enviando...',
+    'trial.success': 'Recebemos sua solicitação! Em breve entraremos em contato.',
+    'trial.error': 'Não foi possível enviar sua solicitação. Tente novamente.',
+
     'highlights.title': 'Destaques',
 
     'team.title': 'Equipe',
@@ -71,6 +86,9 @@ export const translations = {
     'store.empty': 'Produtos Tubarão BJJ em breve. Compra via WhatsApp/Instagram.',
     'store.variants': 'Variantes',
     'store.buyWhatsapp': 'Comprar via WhatsApp',
+    'store.checkout': 'Pagar online',
+    'store.checkoutLoading': 'Iniciando checkout...',
+    'store.checkoutError': 'Não foi possível iniciar o checkout online no momento.',
 
     'schedule.title': 'Horários',
     'schedule.subtitle': 'Confira os horários das aulas por unidade e dia da semana.',
@@ -116,6 +134,7 @@ export const translations = {
     'nav.about': 'About us',
     'nav.programmes': 'Classes & programs',
     'nav.schedule': 'Schedule',
+    'nav.trial': 'Trial class',
     'nav.team': 'Team',
     'nav.addresses': 'Locations',
     'nav.store': 'Store',
@@ -158,6 +177,20 @@ export const translations = {
       'Book a trial class and discover our methodology. We offer classes for all levels and ages.',
     'join.cta': 'Book a trial class',
 
+    'trial.title': 'Book your trial class',
+    'trial.subtitle':
+      'Fill out the form and our team will contact you to confirm the best training time.',
+    'trial.placeholder.name': 'Full name',
+    'trial.placeholder.email': 'Email',
+    'trial.placeholder.phone': 'Phone with WhatsApp',
+    'trial.placeholder.program': 'Interest (optional): Kids, Adults, Women...',
+    'trial.placeholder.time': 'Preferred training time (optional)',
+    'trial.placeholder.notes': 'Notes (optional)',
+    'trial.submit': 'Submit and schedule',
+    'trial.submitting': 'Submitting...',
+    'trial.success': 'We got your request! Our team will contact you soon.',
+    'trial.error': 'Could not send your request. Please try again.',
+
     'highlights.title': 'Highlights',
 
     'team.title': 'Team',
@@ -174,6 +207,9 @@ export const translations = {
     'store.empty': 'Tubarão BJJ products coming soon. Purchase via WhatsApp/Instagram.',
     'store.variants': 'Variants',
     'store.buyWhatsapp': 'Buy via WhatsApp',
+    'store.checkout': 'Pay online',
+    'store.checkoutLoading': 'Starting checkout...',
+    'store.checkoutError': 'Could not start online checkout right now.',
 
     'schedule.title': 'Schedule',
     'schedule.subtitle': 'Class times by location and day of the week.',
@@ -219,6 +255,7 @@ export const translations = {
     'nav.about': 'Quiénes somos',
     'nav.programmes': 'Clases y modalidades',
     'nav.schedule': 'Horarios',
+    'nav.trial': 'Clase de prueba',
     'nav.team': 'Equipo',
     'nav.addresses': 'Sedes',
     'nav.store': 'Tienda',
@@ -261,6 +298,20 @@ export const translations = {
       'Ven a una clase de prueba y conoce nuestra metodología. Ofrecemos clases para todos los niveles y edades.',
     'join.cta': 'Agendar clase de prueba',
 
+    'trial.title': 'Agenda tu clase de prueba',
+    'trial.subtitle':
+      'Completa el formulario y nuestro equipo te contactará para confirmar el mejor horario.',
+    'trial.placeholder.name': 'Nombre completo',
+    'trial.placeholder.email': 'Email',
+    'trial.placeholder.phone': 'Teléfono con WhatsApp',
+    'trial.placeholder.program': 'Interés (opcional): Infantil, Adultos, Femenino...',
+    'trial.placeholder.time': 'Mejor horario para entrenar (opcional)',
+    'trial.placeholder.notes': 'Observaciones (opcional)',
+    'trial.submit': 'Enviar y agendar',
+    'trial.submitting': 'Enviando...',
+    'trial.success': 'Recibimos tu solicitud. Nuestro equipo te contactará pronto.',
+    'trial.error': 'No se pudo enviar tu solicitud. Inténtalo nuevamente.',
+
     'highlights.title': 'Destacados',
 
     'team.title': 'Equipo',
@@ -277,6 +328,9 @@ export const translations = {
     'store.empty': 'Productos Tubarão BJJ próximamente. Compra por WhatsApp/Instagram.',
     'store.variants': 'Variantes',
     'store.buyWhatsapp': 'Comprar por WhatsApp',
+    'store.checkout': 'Pagar online',
+    'store.checkoutLoading': 'Iniciando checkout...',
+    'store.checkoutError': 'No fue posible iniciar el checkout en este momento.',
 
     'schedule.title': 'Horarios',
     'schedule.subtitle': 'Consulta los horarios de las clases por sede y día de la semana.',

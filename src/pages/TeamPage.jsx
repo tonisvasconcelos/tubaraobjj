@@ -20,6 +20,10 @@ export default function TeamPage() {
       <Seo
         title="Equipe e professores — GFTeam Tubarão"
         description="Conheça a equipe da GFTeam Tubarão: professores e instrutores de Jiu-Jitsu no Rio de Janeiro. Experiência, graduações e aulas para todos os níveis."
+        breadcrumbs={[
+          { name: 'Home', path: '/' },
+          { name: 'Equipe', path: '/team' },
+        ]}
       />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,6 +48,8 @@ export default function TeamPage() {
                     <img
                       src={member.photo_url}
                       alt={member.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                   </div>

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "seo:sitemap": "node scripts/generate-sitemap.mjs",
+    "build": "npm run seo:sitemap && vite build && react-snap",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,7 +25,20 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.32",
+    "react-snap": "^1.23.0",
     "tailwindcss": "^3.3.6",
     "vite": "^5.0.8"
+  },
+  "reactSnap": {
+    "source": "dist",
+    "include": [
+      "/",
+      "/team",
+      "/addresses",
+      "/store",
+      "/horarios",
+      "/aula-experimental"
+    ],
+    "skipThirdPartyRequests": true
   }
 }

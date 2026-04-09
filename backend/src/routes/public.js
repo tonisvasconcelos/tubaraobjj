@@ -1,5 +1,6 @@
 import express from 'express'
 import pool from '../db/pool.js'
+import { rateLimit } from '../middleware/rateLimit.js'
 
 const router = express.Router()
 
@@ -78,7 +79,7 @@ router.get('/schedules', async (req, res) => {
   }
 })
 
-router.post('/contacts', async (req, res) => {
+async function createContact(req, res) {
   try {
     const { name, email, phone, message } = req.body || {}
     if (!name || !email || !message) {
@@ -93,6 +94,9 @@ router.post('/contacts', async (req, res) => {
     console.error(e)
     res.status(500).json({ error: 'Erro no servidor' })
   }
-})
+}
+
+router.post('/contacts', rateLimit({ windowMs: 60_000, max: 8 }), createContact)
+router.post('/contact', rateLimit({ windowMs: 60_000, max: 8 }), createContact)
 
 export default router

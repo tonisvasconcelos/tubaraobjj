@@ -15,7 +15,7 @@ const HeroGrid = () => {
     {
       id: 2,
       titleKey: 'hero.unidades',
-      backgroundImage: `${baseUrl}images/UnidadeTijuca.png`,
+      backgroundImage: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
       link: '/addresses',
     },
     {
