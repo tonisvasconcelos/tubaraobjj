@@ -91,6 +91,8 @@ export const translations = {
     'team.loading': 'Carregando...',
     'team.empty':
       'Conheça o Professor Márcio "Tubarão" e nossa equipe de instrutores. (Conteúdo em breve.)',
+    'team.showDescription': 'Ver descrição',
+    'team.hideDescription': 'Ocultar descrição',
 
     'addresses.title': 'Unidades',
     'addresses.loading': 'Carregando...',
@@ -228,6 +230,8 @@ export const translations = {
     'team.loading': 'Loading...',
     'team.empty':
       'Meet Professor Márcio "Tubarão" and our instructors. (Content coming soon.)',
+    'team.showDescription': 'Show description',
+    'team.hideDescription': 'Hide description',
 
     'addresses.title': 'Locations',
     'addresses.loading': 'Loading...',
@@ -366,6 +370,8 @@ export const translations = {
     'team.loading': 'Cargando...',
     'team.empty':
       'Conoce al Profesor Márcio "Tubarão" y a nuestros instructores. (Contenido próximamente.)',
+    'team.showDescription': 'Ver descripción',
+    'team.hideDescription': 'Ocultar descripción',
 
     'addresses.title': 'Sedes',
     'addresses.loading': 'Cargando...',
