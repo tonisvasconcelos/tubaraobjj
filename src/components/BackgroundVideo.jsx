@@ -29,11 +29,11 @@ const BackgroundVideo = () => {
     const saveData = Boolean(connection?.saveData)
     const effectiveType = connection?.effectiveType || ''
     const lowBandwidth = effectiveType.includes('2g') || effectiveType === '3g'
-    const isDesktopViewport = window.matchMedia?.('(min-width: 1024px)')?.matches ?? true
     const deviceMemory = Number(navigator.deviceMemory || 0)
     const lowMemoryDevice = deviceMemory > 0 && deviceMemory < 4
 
-    const canPlay = !reduceMotion && !saveData && !lowBandwidth && isDesktopViewport && !lowMemoryDevice
+    // Allow video on mobile too; only block when the user/device/network signals constraints.
+    const canPlay = !reduceMotion && !saveData && !lowBandwidth && !lowMemoryDevice
     setAllowVideo(canPlay)
   }, [reduceMotion])
 
