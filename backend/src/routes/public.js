@@ -19,7 +19,8 @@ router.get('/team-members', async (req, res) => {
 router.get('/branches', async (req, res) => {
   try {
     const r = await pool.query(
-      'SELECT id, name, address, photo_url, sort_order FROM branches WHERE is_published = true ORDER BY sort_order ASC, id ASC'
+      `SELECT id, name, address, photo_url, sort_order, has_parking, parking_address
+       FROM branches WHERE is_published = true ORDER BY sort_order ASC, id ASC`
     )
     res.json(r.rows)
   } catch (e) {

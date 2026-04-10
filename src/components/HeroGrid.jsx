@@ -20,7 +20,7 @@ const HeroGrid = () => {
       id: 2,
       titleKey: 'hero.unidades',
       imageId: 'hero-branches',
-      fallbackImage: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      fallbackImage: `${baseUrl}images/${encodeURIComponent('Marcio Tubarão2.JPG')}`,
       link: '/addresses',
     },
     {

@@ -203,10 +203,13 @@ router.get('/branches', async (req, res) => {
 
 router.post('/branches', async (req, res) => {
   try {
-    const { name, address, photo_url, sort_order, is_published } = req.body || {}
+    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address } = req.body || {}
+    const hp = Boolean(has_parking)
+    const pa = hp && parking_address ? String(parking_address).trim() : null
     const r = await pool.query(
-      `INSERT INTO branches (name, address, photo_url, sort_order, is_published) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [name || '', address || '', photo_url || null, sort_order ?? 0, is_published !== false]
+      `INSERT INTO branches (name, address, photo_url, sort_order, is_published, has_parking, parking_address)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [name || '', address || '', photo_url || null, sort_order ?? 0, is_published !== false, hp, pa]
     )
     res.status(201).json(r.rows[0])
   } catch (e) {
@@ -218,10 +221,13 @@ router.post('/branches', async (req, res) => {
 router.put('/branches/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
-    const { name, address, photo_url, sort_order, is_published } = req.body || {}
+    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address } = req.body || {}
+    const hp = Boolean(has_parking)
+    const pa = hp && parking_address ? String(parking_address).trim() : null
     const r = await pool.query(
-      `UPDATE branches SET name = $1, address = $2, photo_url = $3, sort_order = $4, is_published = $5, updated_at = NOW() WHERE id = $6 RETURNING *`,
-      [name ?? '', address ?? '', photo_url ?? null, sort_order ?? 0, is_published !== false, id]
+      `UPDATE branches SET name = $1, address = $2, photo_url = $3, sort_order = $4, is_published = $5,
+       has_parking = $6, parking_address = $7, updated_at = NOW() WHERE id = $8 RETURNING *`,
+      [name ?? '', address ?? '', photo_url ?? null, sort_order ?? 0, is_published !== false, hp, pa, id]
     )
     if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
     res.json(r.rows[0])

@@ -14,7 +14,7 @@ const imageJobs = [
   },
   {
     id: 'hero-branches',
-    input: 'Site_ImageBackGround_001.PNG',
+    input: 'Marcio Tubarão2.JPG',
     widths: [640, 960, 1280, 1600],
   },
   {

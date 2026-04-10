@@ -6,7 +6,15 @@ export default function BranchesManage() {
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', address: '', photo_url: '', sort_order: 0, is_published: true })
+  const [form, setForm] = useState({
+    name: '',
+    address: '',
+    photo_url: '',
+    sort_order: 0,
+    is_published: true,
+    has_parking: false,
+    parking_address: '',
+  })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
@@ -27,7 +35,15 @@ export default function BranchesManage() {
 
   const openNew = () => {
     setEditing(null)
-    setForm({ name: '', address: '', photo_url: '', sort_order: list.length, is_published: true })
+    setForm({
+      name: '',
+      address: '',
+      photo_url: '',
+      sort_order: list.length,
+      is_published: true,
+      has_parking: false,
+      parking_address: '',
+    })
   }
 
   const openEdit = (row) => {
@@ -38,6 +54,8 @@ export default function BranchesManage() {
       photo_url: row.photo_url || '',
       sort_order: row.sort_order ?? 0,
       is_published: row.is_published !== false,
+      has_parking: Boolean(row.has_parking),
+      parking_address: row.parking_address || '',
     })
   }
 
@@ -112,6 +130,29 @@ export default function BranchesManage() {
                 <img src={form.photo_url} alt="" className="mt-2 h-24 w-24 object-cover rounded-lg" />
               )}
             </div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.has_parking}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    has_parking: e.target.checked,
+                    parking_address: e.target.checked ? f.parking_address : '',
+                  }))
+                }
+              />
+              Há estacionamento próximo
+            </label>
+            {form.has_parking ? (
+              <textarea
+                placeholder="Endereço do estacionamento (próximo à unidade)"
+                value={form.parking_address}
+                onChange={(e) => setForm((f) => ({ ...f, parking_address: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                rows={2}
+              />
+            ) : null}
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"

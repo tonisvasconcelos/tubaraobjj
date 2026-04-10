@@ -51,7 +51,7 @@ router.get('/slots', async (req, res) => {
 router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req, res) => {
   const client = await pool.connect()
   try {
-    const { trialSlotId, name, email, phone, notes, interestProgram } = req.body || {}
+    const { trialSlotId, name, email, phone, notes, interestProgram, branchId } = req.body || {}
     if (!trialSlotId || !name || !email || !phone) {
       return res
         .status(400)
@@ -72,6 +72,16 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
       return res.status(404).json({ error: 'Horário não encontrado' })
     }
     const slot = slotResult.rows[0]
+    if (branchId != null && branchId !== '') {
+      const bid = Number(branchId)
+      if (!Number.isNaN(bid)) {
+        const slotBranch = slot.branch_id != null ? Number(slot.branch_id) : null
+        if (slotBranch === null || slotBranch !== bid) {
+          await client.query('ROLLBACK')
+          return res.status(400).json({ error: 'A unidade selecionada não corresponde ao horário escolhido.' })
+        }
+      }
+    }
     if (!slot.is_published || slot.is_cancelled) {
       await client.query('ROLLBACK')
       return res.status(400).json({ error: 'Horário indisponível para agendamento' })

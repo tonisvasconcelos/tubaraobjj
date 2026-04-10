@@ -70,6 +70,20 @@ export const translations = {
     'trial.submitting': 'Enviando...',
     'trial.success': 'Recebemos sua solicitação! Em breve entraremos em contato.',
     'trial.error': 'Não foi possível enviar sua solicitação. Tente novamente.',
+    'trial.branchLabel': 'Unidade',
+    'trial.branchPlaceholder': 'Selecione a unidade',
+    'trial.branchRequired': 'Selecione a unidade onde deseja fazer a aula experimental.',
+    'trial.selectBranchFirst': 'Escolha uma unidade para ver os horários disponíveis.',
+    'trial.slotsLabel': 'Escolha um horário disponível',
+    'trial.slotsLoading': 'Carregando horários...',
+    'trial.slotRequired': 'Selecione um horário disponível para concluir o agendamento.',
+    'trial.slotsEmpty':
+      'No momento não há horários publicados para esta unidade. Envie seus dados e retornaremos com opções.',
+    'trial.directionsButton': 'Como chegar',
+    'trial.directionsLoading': 'Obtendo localização...',
+    'trial.directionsDenied':
+      'Localização não permitida. Abrindo o mapa só com o endereço da unidade.',
+    'trial.directionsUnavailable': 'Geolocalização indisponível neste dispositivo.',
 
     'highlights.title': 'Destaques',
 
@@ -81,6 +95,8 @@ export const translations = {
     'addresses.title': 'Unidades',
     'addresses.loading': 'Carregando...',
     'addresses.empty': 'Vila Isabel (Sede) e Tijuca. Endereços e fotos em breve.',
+    'addresses.parkingYes': 'Estacionamento',
+    'addresses.parkingNear': 'Estacionamento próximo',
 
     'store.title': 'Loja',
     'store.loading': 'Carregando...',
@@ -192,6 +208,19 @@ export const translations = {
     'trial.submitting': 'Submitting...',
     'trial.success': 'We got your request! Our team will contact you soon.',
     'trial.error': 'Could not send your request. Please try again.',
+    'trial.branchLabel': 'Location',
+    'trial.branchPlaceholder': 'Select location',
+    'trial.branchRequired': 'Please select the location for your trial class.',
+    'trial.selectBranchFirst': 'Choose a location to see available times.',
+    'trial.slotsLabel': 'Choose an available time',
+    'trial.slotsLoading': 'Loading times...',
+    'trial.slotRequired': 'Please select an available time to complete your booking.',
+    'trial.slotsEmpty':
+      'No published times for this location right now. Send your details and we will get back to you.',
+    'trial.directionsButton': 'Directions',
+    'trial.directionsLoading': 'Getting your location...',
+    'trial.directionsDenied': 'Location denied. Opening the map with the gym address only.',
+    'trial.directionsUnavailable': 'Geolocation is not available on this device.',
 
     'highlights.title': 'Highlights',
 
@@ -203,6 +232,8 @@ export const translations = {
     'addresses.title': 'Locations',
     'addresses.loading': 'Loading...',
     'addresses.empty': 'Vila Isabel (headquarters) and Tijuca. Addresses and photos coming soon.',
+    'addresses.parkingYes': 'Parking',
+    'addresses.parkingNear': 'Nearby parking',
 
     'store.title': 'Store',
     'store.loading': 'Loading...',
@@ -314,6 +345,20 @@ export const translations = {
     'trial.submitting': 'Enviando...',
     'trial.success': 'Recibimos tu solicitud. Nuestro equipo te contactará pronto.',
     'trial.error': 'No se pudo enviar tu solicitud. Inténtalo nuevamente.',
+    'trial.branchLabel': 'Sede',
+    'trial.branchPlaceholder': 'Selecciona la sede',
+    'trial.branchRequired': 'Selecciona la sede donde quieres la clase de prueba.',
+    'trial.selectBranchFirst': 'Elige una sede para ver los horarios disponibles.',
+    'trial.slotsLabel': 'Elige un horario disponible',
+    'trial.slotsLoading': 'Cargando horarios...',
+    'trial.slotRequired': 'Selecciona un horario disponible para completar la reserva.',
+    'trial.slotsEmpty':
+      'No hay horarios publicados para esta sede. Envía tus datos y te contactaremos.',
+    'trial.directionsButton': 'Cómo llegar',
+    'trial.directionsLoading': 'Obteniendo ubicación...',
+    'trial.directionsDenied':
+      'Ubicación no permitida. Abriendo el mapa solo con la dirección de la sede.',
+    'trial.directionsUnavailable': 'Geolocalización no disponible en este dispositivo.',
 
     'highlights.title': 'Destacados',
 
@@ -325,6 +370,8 @@ export const translations = {
     'addresses.title': 'Sedes',
     'addresses.loading': 'Cargando...',
     'addresses.empty': 'Vila Isabel (sede) y Tijuca. Direcciones y fotos próximamente.',
+    'addresses.parkingYes': 'Estacionamiento',
+    'addresses.parkingNear': 'Estacionamiento cercano',
 
     'store.title': 'Tienda',
     'store.loading': 'Cargando...',
