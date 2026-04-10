@@ -4,6 +4,7 @@ import { Loader2, Pencil, Trash2 } from 'lucide-react'
 
 const emptySlotForm = {
   branch_id: '',
+  team_member_id: '',
   title: '',
   starts_at: '',
   ends_at: '',
@@ -11,6 +12,31 @@ const emptySlotForm = {
   is_published: true,
   is_cancelled: false,
 }
+
+const emptyRecurringForm = {
+  branch_id: '',
+  team_member_id: '',
+  title: '',
+  range_start: '',
+  range_end: '',
+  weekdays: [],
+  start_time: '10:00',
+  end_time: '11:00',
+  capacity: 1,
+  is_published: true,
+  is_cancelled: false,
+}
+
+/** 0 = domingo … 6 = sábado (API / backend) */
+const WEEKDAY_OPTIONS = [
+  { v: 0, label: 'Dom' },
+  { v: 1, label: 'Seg' },
+  { v: 2, label: 'Ter' },
+  { v: 3, label: 'Qua' },
+  { v: 4, label: 'Qui' },
+  { v: 5, label: 'Sex' },
+  { v: 6, label: 'Sáb' },
+]
 
 function formatDateTimeInput(dateValue) {
   if (!dateValue) return ''
@@ -23,22 +49,30 @@ export default function TrialBookingsManage() {
   const [slots, setSlots] = useState([])
   const [reservations, setReservations] = useState([])
   const [leads, setLeads] = useState([])
+  const [branches, setBranches] = useState([])
+  const [teamMembers, setTeamMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editingSlot, setEditingSlot] = useState(null)
   const [slotForm, setSlotForm] = useState(emptySlotForm)
+  const [createMode, setCreateMode] = useState('single')
+  const [recurringForm, setRecurringForm] = useState(emptyRecurringForm)
 
   async function load() {
     setLoading(true)
     try {
-      const [slotsData, reservationsData, leadsData] = await Promise.all([
+      const [slotsData, reservationsData, leadsData, branchesData, teamData] = await Promise.all([
         admin.trial.listSlots(),
         admin.trial.listReservations(),
         admin.trial.listLeads(),
+        admin.branches.list(),
+        admin.team.list(),
       ])
       setSlots(Array.isArray(slotsData) ? slotsData : [])
       setReservations(Array.isArray(reservationsData) ? reservationsData : [])
       setLeads(Array.isArray(leadsData) ? leadsData : [])
+      setBranches(Array.isArray(branchesData) ? branchesData : [])
+      setTeamMembers(Array.isArray(teamData) ? teamData : [])
     } catch (error) {
       alert(error.message || 'Erro ao carregar dados de aula experimental')
     } finally {
@@ -53,12 +87,16 @@ export default function TrialBookingsManage() {
   function openNewSlot() {
     setEditingSlot(null)
     setSlotForm(emptySlotForm)
+    setRecurringForm(emptyRecurringForm)
+    setCreateMode('single')
   }
 
   function openEditSlot(slot) {
     setEditingSlot(slot)
+    setCreateMode('single')
     setSlotForm({
       branch_id: slot.branch_id || '',
+      team_member_id: slot.team_member_id != null ? String(slot.team_member_id) : '',
       title: slot.title || '',
       starts_at: formatDateTimeInput(slot.starts_at),
       ends_at: formatDateTimeInput(slot.ends_at),
@@ -68,14 +106,28 @@ export default function TrialBookingsManage() {
     })
   }
 
+  function toggleRecurringWeekday(day) {
+    setRecurringForm((prev) => {
+      const set = new Set(prev.weekdays)
+      if (set.has(day)) set.delete(day)
+      else set.add(day)
+      return { ...prev, weekdays: [...set].sort((a, b) => a - b) }
+    })
+  }
+
   async function saveSlot() {
+    if (!slotForm.starts_at || !slotForm.ends_at) {
+      alert('Informe início e fim do horário.')
+      return
+    }
     setSaving(true)
     try {
       const payload = {
         branch_id: slotForm.branch_id ? Number(slotForm.branch_id) : null,
+        team_member_id: slotForm.team_member_id === '' ? null : Number(slotForm.team_member_id),
         title: slotForm.title || null,
-        starts_at: slotForm.starts_at ? new Date(slotForm.starts_at).toISOString() : null,
-        ends_at: slotForm.ends_at ? new Date(slotForm.ends_at).toISOString() : null,
+        starts_at: new Date(slotForm.starts_at).toISOString(),
+        ends_at: new Date(slotForm.ends_at).toISOString(),
         capacity: Math.max(Number(slotForm.capacity) || 1, 1),
         is_published: slotForm.is_published,
         is_cancelled: slotForm.is_cancelled,
@@ -89,6 +141,48 @@ export default function TrialBookingsManage() {
       await load()
     } catch (error) {
       alert(error.message || 'Erro ao salvar horário')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveRecurringSeries() {
+    if (!recurringForm.branch_id) {
+      alert('Selecione a unidade para a série.')
+      return
+    }
+    if (!recurringForm.range_start || !recurringForm.range_end) {
+      alert('Informe data inicial e final do período.')
+      return
+    }
+    if (!recurringForm.weekdays.length) {
+      alert('Selecione pelo menos um dia da semana.')
+      return
+    }
+    setSaving(true)
+    try {
+      const result = await admin.trial.createSlotsBulk({
+        branch_id: Number(recurringForm.branch_id),
+        team_member_id:
+          recurringForm.team_member_id === '' ? null : Number(recurringForm.team_member_id),
+        title: recurringForm.title || null,
+        capacity: Math.max(Number(recurringForm.capacity) || 1, 1),
+        is_published: recurringForm.is_published,
+        is_cancelled: recurringForm.is_cancelled,
+        range_start: recurringForm.range_start,
+        range_end: recurringForm.range_end,
+        weekdays: recurringForm.weekdays,
+        start_time: recurringForm.start_time,
+        end_time: recurringForm.end_time,
+      })
+      alert(
+        `Série criada: ${result.created} horário(s).` +
+          (result.skipped ? ` Ignorados (já existentes): ${result.skipped}.` : '')
+      )
+      setRecurringForm(emptyRecurringForm)
+      await load()
+    } catch (error) {
+      alert(error.message || 'Erro ao criar série')
     } finally {
       setSaving(false)
     }
@@ -131,80 +225,291 @@ export default function TrialBookingsManage() {
           <h2 className="font-semibold text-slate-900 mb-4">
             {editingSlot ? 'Editar horário disponível' : 'Novo horário disponível'}
           </h2>
-          <div className="space-y-3">
-            <input
-              type="number"
-              placeholder="ID da unidade (opcional)"
-              value={slotForm.branch_id}
-              onChange={(event) => setSlotForm((prev) => ({ ...prev, branch_id: event.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
-            <input
-              type="text"
-              placeholder="Título (ex: Turma Experimental Adulto)"
-              value={slotForm.title}
-              onChange={(event) => setSlotForm((prev) => ({ ...prev, title: event.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <input
-                type="datetime-local"
-                value={slotForm.starts_at}
-                onChange={(event) => setSlotForm((prev) => ({ ...prev, starts_at: event.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-              <input
-                type="datetime-local"
-                value={slotForm.ends_at}
-                onChange={(event) => setSlotForm((prev) => ({ ...prev, ends_at: event.target.value }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              />
-            </div>
-            <input
-              type="number"
-              min={1}
-              placeholder="Capacidade"
-              value={slotForm.capacity}
-              onChange={(event) => setSlotForm((prev) => ({ ...prev, capacity: event.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-            />
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={slotForm.is_published}
-                onChange={(event) =>
-                  setSlotForm((prev) => ({ ...prev, is_published: event.target.checked }))
-                }
-              />
-              Publicado no site
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={slotForm.is_cancelled}
-                onChange={(event) =>
-                  setSlotForm((prev) => ({ ...prev, is_cancelled: event.target.checked }))
-                }
-              />
-              Cancelado
-            </label>
-            <div className="flex gap-2">
+
+          {!editingSlot && (
+            <div className="flex rounded-lg border border-slate-200 p-1 mb-4 gap-1">
               <button
                 type="button"
-                onClick={saveSlot}
+                onClick={() => setCreateMode('single')}
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+                  createMode === 'single' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Horário único
+              </button>
+              <button
+                type="button"
+                onClick={() => setCreateMode('recurring')}
+                className={`flex-1 rounded-md px-3 py-2 text-sm font-medium ${
+                  createMode === 'recurring'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Recorrente
+              </button>
+            </div>
+          )}
+
+          {createMode === 'recurring' && !editingSlot ? (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-500">
+                Horários em America/São Paulo (UTC−3). Dias: 0 = domingo … 6 = sábado.
+              </p>
+              <select
+                value={recurringForm.branch_id}
+                onChange={(event) =>
+                  setRecurringForm((prev) => ({ ...prev, branch_id: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+                required
+              >
+                <option value="">Unidade *</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={recurringForm.team_member_id}
+                onChange={(event) =>
+                  setRecurringForm((prev) => ({ ...prev, team_member_id: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                <option value="">Professor responsável (opcional)</option>
+                {teamMembers.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} — {m.role}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Título (ex: Turma Experimental Adulto)"
+                value={recurringForm.title}
+                onChange={(event) =>
+                  setRecurringForm((prev) => ({ ...prev, title: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Data inicial</label>
+                  <input
+                    type="date"
+                    value={recurringForm.range_start}
+                    onChange={(event) =>
+                      setRecurringForm((prev) => ({ ...prev, range_start: event.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Data final</label>
+                  <input
+                    type="date"
+                    value={recurringForm.range_end}
+                    onChange={(event) =>
+                      setRecurringForm((prev) => ({ ...prev, range_end: event.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-slate-600 mb-2">Dias da semana</p>
+                <div className="flex flex-wrap gap-2">
+                  {WEEKDAY_OPTIONS.map((wd) => (
+                    <label
+                      key={wd.v}
+                      className={`inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-sm cursor-pointer ${
+                        recurringForm.weekdays.includes(wd.v)
+                          ? 'border-slate-900 bg-slate-900 text-white'
+                          : 'border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        checked={recurringForm.weekdays.includes(wd.v)}
+                        onChange={() => toggleRecurringWeekday(wd.v)}
+                      />
+                      {wd.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Início (hora)</label>
+                  <input
+                    type="time"
+                    value={recurringForm.start_time}
+                    onChange={(event) =>
+                      setRecurringForm((prev) => ({ ...prev, start_time: event.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-500 mb-1">Fim (hora)</label>
+                  <input
+                    type="time"
+                    value={recurringForm.end_time}
+                    onChange={(event) =>
+                      setRecurringForm((prev) => ({ ...prev, end_time: event.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+              <input
+                type="number"
+                min={1}
+                placeholder="Capacidade"
+                value={recurringForm.capacity}
+                onChange={(event) =>
+                  setRecurringForm((prev) => ({ ...prev, capacity: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={recurringForm.is_published}
+                  onChange={(event) =>
+                    setRecurringForm((prev) => ({ ...prev, is_published: event.target.checked }))
+                  }
+                />
+                Publicado no site
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={recurringForm.is_cancelled}
+                  onChange={(event) =>
+                    setRecurringForm((prev) => ({ ...prev, is_cancelled: event.target.checked }))
+                  }
+                />
+                Cancelado
+              </label>
+              <button
+                type="button"
+                onClick={saveRecurringSeries}
                 disabled={saving}
-                className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-60 flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingSlot ? 'Atualizar' : 'Criar'}
+                Criar série
               </button>
-              {editingSlot && (
-                <button type="button" onClick={openNewSlot} className="px-4 py-2 border border-slate-300 rounded-lg">
-                  Novo
-                </button>
-              )}
             </div>
-          </div>
+          ) : (
+            <div className="space-y-3">
+              <select
+                value={slotForm.branch_id}
+                onChange={(event) => setSlotForm((prev) => ({ ...prev, branch_id: event.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                <option value="">Unidade (opcional)</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={slotForm.team_member_id}
+                onChange={(event) =>
+                  setSlotForm((prev) => ({ ...prev, team_member_id: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                <option value="">Professor responsável (opcional)</option>
+                {teamMembers.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} — {m.role}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Título (ex: Turma Experimental Adulto)"
+                value={slotForm.title}
+                onChange={(event) => setSlotForm((prev) => ({ ...prev, title: event.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input
+                  type="datetime-local"
+                  value={slotForm.starts_at}
+                  onChange={(event) =>
+                    setSlotForm((prev) => ({ ...prev, starts_at: event.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                />
+                <input
+                  type="datetime-local"
+                  value={slotForm.ends_at}
+                  onChange={(event) =>
+                    setSlotForm((prev) => ({ ...prev, ends_at: event.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+                />
+              </div>
+              <input
+                type="number"
+                min={1}
+                placeholder="Capacidade"
+                value={slotForm.capacity}
+                onChange={(event) =>
+                  setSlotForm((prev) => ({ ...prev, capacity: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={slotForm.is_published}
+                  onChange={(event) =>
+                    setSlotForm((prev) => ({ ...prev, is_published: event.target.checked }))
+                  }
+                />
+                Publicado no site
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={slotForm.is_cancelled}
+                  onChange={(event) =>
+                    setSlotForm((prev) => ({ ...prev, is_cancelled: event.target.checked }))
+                  }
+                />
+                Cancelado
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={saveSlot}
+                  disabled={saving}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-60 flex items-center gap-2"
+                >
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {editingSlot ? 'Atualizar' : 'Criar'}
+                </button>
+                {editingSlot && (
+                  <button
+                    type="button"
+                    onClick={openNewSlot}
+                    className="px-4 py-2 border border-slate-300 rounded-lg"
+                  >
+                    Novo
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         <section className="bg-white rounded-xl shadow p-5">
@@ -223,7 +528,9 @@ export default function TrialBookingsManage() {
                         {new Date(slot.ends_at).toLocaleString('pt-BR')}
                       </p>
                       <p className="text-xs text-slate-500">
-                        {slot.branch_name || 'Unidade não definida'} · Capacidade: {slot.capacity} ·{' '}
+                        {slot.branch_name || 'Unidade não definida'}
+                        {slot.instructor_name ? ` · Prof. ${slot.instructor_name}` : ''} · Capacidade:{' '}
+                        {slot.capacity} ·{' '}
                         {slot.is_cancelled ? 'Cancelado' : slot.is_published ? 'Publicado' : 'Rascunho'}
                       </p>
                     </div>

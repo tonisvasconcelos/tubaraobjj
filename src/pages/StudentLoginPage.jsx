@@ -36,11 +36,11 @@ export default function StudentLoginPage() {
       <div className="pointer-events-none absolute inset-0 bg-white/75" aria-hidden="true" />
       <div className="relative z-10 max-w-md mx-auto">
       <div className="bg-white border border-slate-200 rounded-xl shadow overflow-hidden">
-        <div className="w-full bg-slate-100">
+        <div className="w-full bg-slate-100 h-28 sm:h-32 flex items-center justify-center p-2 sm:p-3">
           <img
             src={`${baseUrl}images/20397a70-3e6a-4a70-a2cd-e6ad51a59c6e.png`}
             alt=""
-            className="w-full h-40 sm:h-44 object-cover object-center"
+            className="w-full h-full object-contain object-center"
             decoding="async"
           />
         </div>

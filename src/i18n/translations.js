@@ -84,6 +84,7 @@ export const translations = {
     'trial.directionsDenied':
       'Localização não permitida. Abrindo o mapa só com o endereço da unidade.',
     'trial.directionsUnavailable': 'Geolocalização indisponível neste dispositivo.',
+    'trial.instructorLine': 'Prof. {name}',
 
     'highlights.title': 'Destaques',
 
@@ -223,6 +224,7 @@ export const translations = {
     'trial.directionsLoading': 'Getting your location...',
     'trial.directionsDenied': 'Location denied. Opening the map with the gym address only.',
     'trial.directionsUnavailable': 'Geolocation is not available on this device.',
+    'trial.instructorLine': 'Prof. {name}',
 
     'highlights.title': 'Highlights',
 
@@ -363,6 +365,7 @@ export const translations = {
     'trial.directionsDenied':
       'Ubicación no permitida. Abriendo el mapa solo con la dirección de la sede.',
     'trial.directionsUnavailable': 'Geolocalización no disponible en este dispositivo.',
+    'trial.instructorLine': 'Prof. {name}',
 
     'highlights.title': 'Destacados',
 

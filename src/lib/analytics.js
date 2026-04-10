@@ -1,5 +1,6 @@
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID
 const GTM_ID = import.meta.env.VITE_GTM_ID
+import { initAnalyticsSession, trackAnalyticsPageView } from './analyticsIngestClient'
 
 function appendScript(src, attrs = {}) {
   if (typeof document === 'undefined') return
@@ -30,6 +31,8 @@ export function initAnalytics() {
     window.gtag('config', GA_MEASUREMENT_ID, { send_page_view: false })
     window.__tbjGaLoaded = true
   }
+
+  initAnalyticsSession()
 }
 
 export function trackEvent(eventName, params = {}) {
@@ -50,4 +53,5 @@ export function trackPageView(pathname) {
       send_to: GA_MEASUREMENT_ID,
     })
   }
+  trackAnalyticsPageView(pathname)
 }

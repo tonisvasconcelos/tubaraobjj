@@ -2,6 +2,13 @@ import express from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../db/pool.js'
 import { authMiddleware, requireAdmin } from '../middleware/auth.js'
+import {
+  brWallToUtcIso,
+  countMatchingWeekdays,
+  eachCalendarDayInclusive,
+  MAX_BULK_OCCURRENCES,
+  parseHHMM,
+} from '../lib/trialSlotRecurrence.js'
 
 const router = express.Router()
 router.use(authMiddleware, requireAdmin)
@@ -341,9 +348,11 @@ router.patch('/plan-assignments/:id', async (req, res) => {
 router.get('/trial-slots', async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT ts.*, b.name AS branch_name
+      `SELECT ts.*, b.name AS branch_name,
+              tm.name AS instructor_name, tm.role AS instructor_role
        FROM trial_slots ts
        LEFT JOIN branches b ON b.id = ts.branch_id
+       LEFT JOIN team_members tm ON tm.id = ts.team_member_id
        ORDER BY ts.starts_at ASC`
     )
     res.json(result.rows)
@@ -355,16 +364,29 @@ router.get('/trial-slots', async (_req, res) => {
 
 router.post('/trial-slots', async (req, res) => {
   try {
-    const { branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled } = req.body || {}
+    const { branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled, team_member_id } =
+      req.body || {}
     if (!starts_at || !ends_at) {
       return res.status(400).json({ error: 'starts_at e ends_at são obrigatórios' })
     }
+    const tmId =
+      team_member_id === '' || team_member_id === undefined || team_member_id === null
+        ? null
+        : Number(team_member_id)
+    if (tmId != null && Number.isNaN(tmId)) {
+      return res.status(400).json({ error: 'team_member_id inválido' })
+    }
+    if (tmId != null) {
+      const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [tmId])
+      if (tm.rows.length === 0) return res.status(400).json({ error: 'Professor não encontrado na equipe' })
+    }
     const result = await pool.query(
-      `INSERT INTO trial_slots (branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled)
-       VALUES ($1, $2, $3::timestamptz, $4::timestamptz, $5, $6, $7)
+      `INSERT INTO trial_slots (branch_id, team_member_id, title, starts_at, ends_at, capacity, is_published, is_cancelled)
+       VALUES ($1, $2, $3, $4::timestamptz, $5::timestamptz, $6, $7, $8)
        RETURNING *`,
       [
         branch_id ? Number(branch_id) : null,
+        tmId,
         title ? String(title).trim().slice(0, 255) : null,
         starts_at,
         ends_at,
@@ -380,18 +402,164 @@ router.post('/trial-slots', async (req, res) => {
   }
 })
 
+router.post('/trial-slots/bulk', async (req, res) => {
+  const client = await pool.connect()
+  try {
+    const body = req.body || {}
+    const {
+      branch_id,
+      team_member_id,
+      title,
+      capacity,
+      is_published,
+      is_cancelled,
+      range_start,
+      range_end,
+      weekdays,
+      start_time,
+      end_time,
+    } = body
+
+    const branchId = branch_id != null && branch_id !== '' ? Number(branch_id) : NaN
+    if (Number.isNaN(branchId) || branchId < 1) {
+      return res.status(400).json({ error: 'branch_id é obrigatório para criar série' })
+    }
+    const br = await client.query('SELECT id FROM branches WHERE id = $1', [branchId])
+    if (br.rows.length === 0) {
+      return res.status(400).json({ error: 'Unidade não encontrada' })
+    }
+
+    const rs = String(range_start || '').trim()
+    const re = String(range_end || '').trim()
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(rs) || !/^\d{4}-\d{2}-\d{2}$/.test(re)) {
+      return res.status(400).json({ error: 'range_start e range_end devem ser YYYY-MM-DD' })
+    }
+    if (rs > re) {
+      return res.status(400).json({ error: 'range_end deve ser igual ou posterior a range_start' })
+    }
+
+    const wdRaw = Array.isArray(weekdays) ? weekdays : []
+    const weekdaysSet = new Set(
+      wdRaw.map((n) => Number(n)).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
+    )
+    if (weekdaysSet.size === 0) {
+      return res.status(400).json({ error: 'Selecione pelo menos um dia da semana (0=dom … 6=sáb)' })
+    }
+
+    const tStart = parseHHMM(start_time)
+    const tEnd = parseHHMM(end_time)
+    if (!tStart || !tEnd) {
+      return res.status(400).json({ error: 'start_time e end_time devem estar no formato HH:mm' })
+    }
+    const startMin = tStart.h * 60 + tStart.m
+    const endMin = tEnd.h * 60 + tEnd.m
+    if (endMin <= startMin) {
+      return res.status(400).json({ error: 'end_time deve ser depois de start_time no mesmo dia' })
+    }
+
+    const tmId =
+      team_member_id === '' || team_member_id === undefined || team_member_id === null
+        ? null
+        : Number(team_member_id)
+    if (tmId != null && Number.isNaN(tmId)) {
+      return res.status(400).json({ error: 'team_member_id inválido' })
+    }
+    if (tmId != null) {
+      const tm = await client.query('SELECT id FROM team_members WHERE id = $1', [tmId])
+      if (tm.rows.length === 0) {
+        return res.status(400).json({ error: 'Professor não encontrado na equipe' })
+      }
+    }
+
+    const cap = Math.max(Number(capacity) || 1, 1)
+    const pub = is_published !== false
+    const cancelled = is_cancelled === true
+    const ttl = title ? String(title).trim().slice(0, 255) : null
+
+    const wouldBe = countMatchingWeekdays(rs, re, weekdaysSet)
+    if (wouldBe > MAX_BULK_OCCURRENCES) {
+      return res.status(400).json({ error: `Máximo de ${MAX_BULK_OCCURRENCES} ocorrências por pedido` })
+    }
+    if (wouldBe === 0) {
+      return res.status(400).json({ error: 'Nenhuma data no intervalo coincide com os dias selecionados' })
+    }
+
+    const createdIds = []
+    let skipped = 0
+
+    await client.query('BEGIN')
+    for (const day of eachCalendarDayInclusive(rs, re)) {
+      if (!weekdaysSet.has(day.weekday)) continue
+      const startsIso = brWallToUtcIso(day.y, day.m, day.d, tStart.h, tStart.m)
+      const endsIso = brWallToUtcIso(day.y, day.m, day.d, tEnd.h, tEnd.m)
+
+      const dup = await client.query(
+        `SELECT id FROM trial_slots
+         WHERE branch_id = $1 AND starts_at = $2::timestamptz AND ends_at = $3::timestamptz
+         LIMIT 1`,
+        [branchId, startsIso, endsIso]
+      )
+      if (dup.rows.length > 0) {
+        skipped += 1
+        continue
+      }
+
+      const ins = await client.query(
+        `INSERT INTO trial_slots (branch_id, team_member_id, title, starts_at, ends_at, capacity, is_published, is_cancelled)
+         VALUES ($1, $2, $3, $4::timestamptz, $5::timestamptz, $6, $7, $8)
+         RETURNING id`,
+        [branchId, tmId, ttl, startsIso, endsIso, cap, pub, cancelled]
+      )
+      createdIds.push(ins.rows[0].id)
+    }
+    await client.query('COMMIT')
+    res.status(201).json({ created: createdIds.length, skipped, ids: createdIds })
+  } catch (error) {
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      /* ignore if no transaction */
+    }
+    console.error('[admin-academy/trial-slots/bulk]', error)
+    res.status(500).json({ error: 'Erro ao criar série de horários' })
+  } finally {
+    client.release()
+  }
+})
+
 router.put('/trial-slots/:id', async (req, res) => {
   try {
     const id = Number(req.params.id)
-    const { branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled } = req.body || {}
+    const {
+      branch_id,
+      title,
+      starts_at,
+      ends_at,
+      capacity,
+      is_published,
+      is_cancelled,
+      team_member_id,
+    } = req.body || {}
+    const tmId =
+      team_member_id === '' || team_member_id === undefined || team_member_id === null
+        ? null
+        : Number(team_member_id)
+    if (tmId != null && Number.isNaN(tmId)) {
+      return res.status(400).json({ error: 'team_member_id inválido' })
+    }
+    if (tmId != null) {
+      const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [tmId])
+      if (tm.rows.length === 0) return res.status(400).json({ error: 'Professor não encontrado na equipe' })
+    }
     const result = await pool.query(
       `UPDATE trial_slots
-       SET branch_id = $1, title = $2, starts_at = $3::timestamptz, ends_at = $4::timestamptz, capacity = $5,
-           is_published = $6, is_cancelled = $7, updated_at = NOW()
-       WHERE id = $8
+       SET branch_id = $1, team_member_id = $2, title = $3, starts_at = $4::timestamptz, ends_at = $5::timestamptz, capacity = $6,
+           is_published = $7, is_cancelled = $8, updated_at = NOW()
+       WHERE id = $9
        RETURNING *`,
       [
         branch_id ? Number(branch_id) : null,
+        tmId,
         title ? String(title).trim().slice(0, 255) : null,
         starts_at,
         ends_at,

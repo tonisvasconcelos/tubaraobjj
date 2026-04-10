@@ -11,6 +11,7 @@ import PlansManage from './PlansManage'
 import TrialBookingsManage from './TrialBookingsManage'
 import InvoicesManage from './InvoicesManage'
 import StudentMessagesManage from './StudentMessagesManage'
+import AnalyticsManage from './AnalyticsManage'
 
 const SECTIONS = {
   team: TeamManage,
@@ -22,6 +23,7 @@ const SECTIONS = {
   students: StudentsManage,
   plans: PlansManage,
   trial: TrialBookingsManage,
+  analytics: AnalyticsManage,
   invoices: InvoicesManage,
   'student-messages': StudentMessagesManage,
 }

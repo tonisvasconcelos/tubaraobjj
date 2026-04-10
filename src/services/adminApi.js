@@ -160,6 +160,12 @@ export const admin = {
       if (!r.ok) throw new Error(data.error || 'Erro ao criar horário')
       return data
     },
+    createSlotsBulk: async (body) => {
+      const r = await authFetch('/api/admin/trial-slots/bulk', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar série de horários')
+      return data
+    },
     updateSlot: async (id, body) => {
       const r = await authFetch(`/api/admin/trial-slots/${id}`, { method: 'PUT', body: JSON.stringify(body) })
       const data = await r.json().catch(() => ({}))
@@ -188,6 +194,50 @@ export const admin = {
       const data = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(data.error || 'Erro ao atualizar lead')
       return data
+    },
+  },
+  analytics: {
+    overview: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/overview${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar visão geral')
+      return data
+    },
+    activeNow: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/active-now${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar sessões ativas')
+      return data
+    },
+    timeseries: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/timeseries${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar série temporal')
+      return Array.isArray(data) ? data : []
+    },
+    regionBreakdown: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/breakdowns/region${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar regiões')
+      return Array.isArray(data) ? data : []
+    },
+    deviceBreakdown: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/breakdowns/device${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar dispositivos')
+      return Array.isArray(data) ? data : []
+    },
+    topPages: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/analytics/breakdowns/pages${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar páginas')
+      return Array.isArray(data) ? data : []
     },
   },
   invoices: {

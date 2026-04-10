@@ -24,12 +24,12 @@ const imageJobs = [
   },
   {
     id: 'programme-main',
-    input: 'Site_ImageBackGround_001.PNG',
+    input: 'IMG_7444.JPG',
     widths: [480, 768, 1024, 1366],
   },
   {
     id: 'programme-couple',
-    input: 'casal.PNG',
+    input: 'Nogi.PNG',
     widths: [480, 768, 1024, 1366],
   },
   {
@@ -39,7 +39,7 @@ const imageJobs = [
   },
   {
     id: 'programme-kids',
-    input: 'TubaKids.JPG',
+    input: 'Kids.png',
     widths: [480, 768, 1024, 1366],
   },
   {

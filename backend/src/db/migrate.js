@@ -360,12 +360,47 @@ CREATE TABLE IF NOT EXISTS seo_pages (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Website analytics events
+CREATE TABLE IF NOT EXISTS analytics_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  event_type TEXT NOT NULL CHECK (event_type IN ('page_view', 'session_start', 'heartbeat', 'session_end')),
+  occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  site_id TEXT NOT NULL DEFAULT 'default',
+  session_id TEXT NOT NULL,
+  user_id TEXT,
+  page_path TEXT NOT NULL DEFAULT '',
+  referrer TEXT,
+  device_type TEXT,
+  user_agent_family TEXT,
+  country_code TEXT,
+  region TEXT,
+  city TEXT,
+  timezone TEXT,
+  is_bot BOOLEAN NOT NULL DEFAULT false,
+  metadata JSONB
+);
+
+-- Website analytics sessions (realtime support)
+CREATE TABLE IF NOT EXISTS analytics_sessions (
+  session_id TEXT PRIMARY KEY,
+  site_id TEXT NOT NULL DEFAULT 'default',
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ended_at TIMESTAMPTZ,
+  device_type TEXT,
+  country_code TEXT,
+  region TEXT,
+  user_id TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(customer_id);
 CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_trial_slots_starts_at ON trial_slots(starts_at);
+ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS team_member_id INT REFERENCES team_members(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_trial_slots_team_member ON trial_slots(team_member_id);
 CREATE INDEX IF NOT EXISTS idx_trial_reservations_slot ON trial_reservations(trial_slot_id);
 CREATE INDEX IF NOT EXISTS idx_trial_reservations_email ON trial_reservations(email);
 CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
@@ -373,6 +408,16 @@ CREATE INDEX IF NOT EXISTS idx_assignments_student ON student_plan_assignments(s
 CREATE INDEX IF NOT EXISTS idx_invoices_student ON invoices(student_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_reference_month ON invoices(reference_month);
 CREATE INDEX IF NOT EXISTS idx_student_messages_student ON student_messages(student_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_occurred_at ON analytics_events(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_site_id ON analytics_events(site_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_event_type ON analytics_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_country_code ON analytics_events(country_code);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_device_type ON analytics_events(device_type);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_session_id ON analytics_events(session_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_events_site_occurred ON analytics_events(site_id, occurred_at);
+CREATE INDEX IF NOT EXISTS idx_analytics_sessions_last_seen_at ON analytics_sessions(last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_analytics_sessions_site_id ON analytics_sessions(site_id);
+CREATE INDEX IF NOT EXISTS idx_analytics_sessions_started_at ON analytics_sessions(started_at);
 
 -- Gallery feature removed: drop legacy table if it exists
 DROP TABLE IF EXISTS gallery_items;

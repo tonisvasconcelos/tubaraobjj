@@ -302,7 +302,10 @@ export default function TrialClassPage() {
                             month: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
-                          })}{' '}
+                          })}
+                          {slot.instructor_name
+                            ? ` · ${t('trial.instructorLine', { name: slot.instructor_name })}`
+                            : ''}{' '}
                           · {slot.available_spots}
                         </span>
                       </label>

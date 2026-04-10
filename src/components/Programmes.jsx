@@ -14,7 +14,7 @@ const Programmes = () => {
       descKey: 'programmes.p1.desc',
       altKey: 'programmes.p1.alt',
       imageId: 'programme-main',
-      fallbackImage: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      fallbackImage: `${baseUrl}images/IMG_7444.JPG`,
     },
     {
       id: 2,
@@ -22,7 +22,7 @@ const Programmes = () => {
       descKey: 'programmes.p2.desc',
       altKey: 'programmes.p2.alt',
       imageId: 'programme-couple',
-      fallbackImage: `${baseUrl}images/casal.PNG`,
+      fallbackImage: `${baseUrl}images/Nogi.PNG`,
     },
     {
       id: 3,
@@ -38,7 +38,7 @@ const Programmes = () => {
       descKey: 'programmes.p4.desc',
       altKey: 'programmes.p4.alt',
       imageId: 'programme-kids',
-      fallbackImage: `${baseUrl}images/TubaKids.JPG`,
+      fallbackImage: `${baseUrl}images/Kids.png`,
     },
   ]
 

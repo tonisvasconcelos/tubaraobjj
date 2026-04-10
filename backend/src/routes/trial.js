@@ -23,6 +23,8 @@ router.get('/slots', async (req, res) => {
 
     const result = await pool.query(
       `SELECT ts.id, ts.branch_id, b.name AS branch_name, ts.title, ts.starts_at, ts.ends_at, ts.capacity,
+              ts.team_member_id,
+              tm.name AS instructor_name, tm.role AS instructor_role,
               COALESCE((
                 SELECT COUNT(*)
                 FROM trial_reservations tr
@@ -31,6 +33,7 @@ router.get('/slots', async (req, res) => {
               ), 0)::int AS booked_count
        FROM trial_slots ts
        LEFT JOIN branches b ON b.id = ts.branch_id
+       LEFT JOIN team_members tm ON tm.id = ts.team_member_id
        WHERE ${filters.join(' AND ')}
        ORDER BY ts.starts_at ASC`,
       params
