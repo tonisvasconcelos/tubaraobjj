@@ -13,14 +13,14 @@ const HeroGrid = () => {
       id: 3,
       titleKey: 'hero.equipe',
       imageId: 'hero-team',
-      fallbackImage: `${baseUrl}images/TubaraoTeam2.PNG`,
+      fallbackImage: `${baseUrl}images/${encodeURIComponent('Marcio Tubarão2.JPG')}`,
       link: '/team',
     },
     {
       id: 2,
       titleKey: 'hero.unidades',
       imageId: 'hero-branches',
-      fallbackImage: `${baseUrl}images/${encodeURIComponent('Marcio Tubarão2.JPG')}`,
+      fallbackImage: `${baseUrl}images/UnidadeTijuca2.PNG`,
       link: '/addresses',
     },
     {

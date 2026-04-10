@@ -9,12 +9,12 @@ const outputRoot = path.join(imagesRoot, 'optimized')
 const imageJobs = [
   {
     id: 'hero-team',
-    input: 'TubaraoTeam2.PNG',
+    input: 'Marcio Tubarão2.JPG',
     widths: [640, 960, 1280, 1600],
   },
   {
     id: 'hero-branches',
-    input: 'Marcio Tubarão2.JPG',
+    input: 'UnidadeTijuca2.PNG',
     widths: [640, 960, 1280, 1600],
   },
   {
