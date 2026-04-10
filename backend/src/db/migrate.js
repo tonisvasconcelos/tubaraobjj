@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS branches (
 
 ALTER TABLE branches ADD COLUMN IF NOT EXISTS has_parking BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE branches ADD COLUMN IF NOT EXISTS parking_address TEXT;
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS latitude NUMERIC(9,6);
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS longitude NUMERIC(9,6);
 
 -- Products
 CREATE TABLE IF NOT EXISTS products (
@@ -400,6 +402,19 @@ CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_trial_slots_starts_at ON trial_slots(starts_at);
 ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS team_member_id INT REFERENCES team_members(id) ON DELETE SET NULL;
+ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS class_type VARCHAR(40) NOT NULL DEFAULT 'experimental_group';
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS requested_class_type VARCHAR(40);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS requested_date DATE;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS requested_time TIME;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS has_gi BOOLEAN;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS gi_size VARCHAR(10);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS has_previous_experience BOOLEAN;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS experience_duration VARCHAR(120);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS current_belt VARCHAR(80);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS stripe_count SMALLINT;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS previous_team VARCHAR(255);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS gender VARCHAR(40);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS prefer_female_instructor BOOLEAN;
 CREATE INDEX IF NOT EXISTS idx_trial_slots_team_member ON trial_slots(team_member_id);
 CREATE INDEX IF NOT EXISTS idx_trial_reservations_slot ON trial_reservations(trial_slot_id);
 CREATE INDEX IF NOT EXISTS idx_trial_reservations_email ON trial_reservations(email);

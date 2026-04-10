@@ -10,6 +10,8 @@ export default function BranchesManage() {
     name: '',
     address: '',
     photo_url: '',
+    latitude: '',
+    longitude: '',
     sort_order: 0,
     is_published: true,
     has_parking: false,
@@ -39,6 +41,8 @@ export default function BranchesManage() {
       name: '',
       address: '',
       photo_url: '',
+      latitude: '',
+      longitude: '',
       sort_order: list.length,
       is_published: true,
       has_parking: false,
@@ -52,6 +56,8 @@ export default function BranchesManage() {
       name: row.name || '',
       address: row.address || '',
       photo_url: row.photo_url || '',
+      latitude: row.latitude == null ? '' : String(row.latitude),
+      longitude: row.longitude == null ? '' : String(row.longitude),
       sort_order: row.sort_order ?? 0,
       is_published: row.is_published !== false,
       has_parking: Boolean(row.has_parking),
@@ -122,6 +128,27 @@ export default function BranchesManage() {
               className="w-full px-3 py-2 border border-slate-200 rounded-lg"
               rows={3}
             />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                type="number"
+                step="0.000001"
+                placeholder="Latitude (ex: -22.912160)"
+                value={form.latitude}
+                onChange={(e) => setForm((f) => ({ ...f, latitude: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+              <input
+                type="number"
+                step="0.000001"
+                placeholder="Longitude (ex: -43.230182)"
+                value={form.longitude}
+                onChange={(e) => setForm((f) => ({ ...f, longitude: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              Dica: no Google Maps, clique no ponto do mapa para copiar latitude/longitude.
+            </p>
             <div>
               <label className="block text-sm text-slate-600 mb-1">Foto</label>
               <input type="file" accept="image/*" onChange={onFileChange} className="text-sm" disabled={uploading} />

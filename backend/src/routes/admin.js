@@ -31,6 +31,15 @@ function isValidUploadUrl(url) {
   }
 }
 
+function parseCoordinate(value, { min, max, label }) {
+  if (value === null || value === undefined || value === '') return null
+  const num = Number(value)
+  if (!Number.isFinite(num) || num < min || num > max) {
+    throw new Error(`${label} inválida`)
+  }
+  return Number(num.toFixed(6))
+}
+
 // ----- Upload (single image) -----
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
@@ -203,13 +212,21 @@ router.get('/branches', async (req, res) => {
 
 router.post('/branches', async (req, res) => {
   try {
-    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address } = req.body || {}
+    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
+    let lat = null
+    let lng = null
+    try {
+      lat = parseCoordinate(latitude, { min: -90, max: 90, label: 'Latitude' })
+      lng = parseCoordinate(longitude, { min: -180, max: 180, label: 'Longitude' })
+    } catch (error) {
+      return res.status(400).json({ error: error.message || 'Coordenadas inválidas' })
+    }
     const hp = Boolean(has_parking)
     const pa = hp && parking_address ? String(parking_address).trim() : null
     const r = await pool.query(
-      `INSERT INTO branches (name, address, photo_url, sort_order, is_published, has_parking, parking_address)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [name || '', address || '', photo_url || null, sort_order ?? 0, is_published !== false, hp, pa]
+      `INSERT INTO branches (name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+      [name || '', address || '', photo_url || null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng]
     )
     res.status(201).json(r.rows[0])
   } catch (e) {
@@ -221,13 +238,21 @@ router.post('/branches', async (req, res) => {
 router.put('/branches/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
-    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address } = req.body || {}
+    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
+    let lat = null
+    let lng = null
+    try {
+      lat = parseCoordinate(latitude, { min: -90, max: 90, label: 'Latitude' })
+      lng = parseCoordinate(longitude, { min: -180, max: 180, label: 'Longitude' })
+    } catch (error) {
+      return res.status(400).json({ error: error.message || 'Coordenadas inválidas' })
+    }
     const hp = Boolean(has_parking)
     const pa = hp && parking_address ? String(parking_address).trim() : null
     const r = await pool.query(
       `UPDATE branches SET name = $1, address = $2, photo_url = $3, sort_order = $4, is_published = $5,
-       has_parking = $6, parking_address = $7, updated_at = NOW() WHERE id = $8 RETURNING *`,
-      [name ?? '', address ?? '', photo_url ?? null, sort_order ?? 0, is_published !== false, hp, pa, id]
+       has_parking = $6, parking_address = $7, latitude = $8, longitude = $9, updated_at = NOW() WHERE id = $10 RETURNING *`,
+      [name ?? '', address ?? '', photo_url ?? null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng, id]
     )
     if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
     res.json(r.rows[0])

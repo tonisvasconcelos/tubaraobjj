@@ -73,6 +73,7 @@ export async function getTrialSlots(params = {}) {
   if (params.from) query.set('from', params.from)
   if (params.to) query.set('to', params.to)
   if (params.branch_id) query.set('branch_id', String(params.branch_id))
+  if (params.class_type) query.set('class_type', String(params.class_type))
   const suffix = query.toString() ? `?${query.toString()}` : ''
   try {
     return await get(`/api/trial/slots${suffix}`)
@@ -89,6 +90,17 @@ export async function createTrialReservation(data) {
   })
   const result = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(result.error || 'Falha ao reservar aula experimental')
+  return result
+}
+
+export async function createTrialPrivateRequest(data) {
+  const res = await fetch(`${API_URL}/api/trial/private-request`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const result = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(result.error || 'Falha ao enviar solicitação de aula privada')
   return result
 }
 

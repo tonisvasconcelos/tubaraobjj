@@ -5,6 +5,7 @@ import { Loader2, Pencil, Trash2 } from 'lucide-react'
 const emptySlotForm = {
   branch_id: '',
   team_member_id: '',
+  class_type: 'experimental_group',
   title: '',
   starts_at: '',
   ends_at: '',
@@ -16,6 +17,7 @@ const emptySlotForm = {
 const emptyRecurringForm = {
   branch_id: '',
   team_member_id: '',
+  class_type: 'experimental_group',
   title: '',
   range_start: '',
   range_end: '',
@@ -36,6 +38,11 @@ const WEEKDAY_OPTIONS = [
   { v: 4, label: 'Qui' },
   { v: 5, label: 'Sex' },
   { v: 6, label: 'Sáb' },
+]
+
+const CLASS_TYPE_OPTIONS = [
+  { value: 'experimental_group', label: 'Experimental Class Group' },
+  { value: 'private_class', label: 'Private Class' },
 ]
 
 function formatDateTimeInput(dateValue) {
@@ -97,6 +104,7 @@ export default function TrialBookingsManage() {
     setSlotForm({
       branch_id: slot.branch_id || '',
       team_member_id: slot.team_member_id != null ? String(slot.team_member_id) : '',
+      class_type: slot.class_type || 'experimental_group',
       title: slot.title || '',
       starts_at: formatDateTimeInput(slot.starts_at),
       ends_at: formatDateTimeInput(slot.ends_at),
@@ -125,6 +133,7 @@ export default function TrialBookingsManage() {
       const payload = {
         branch_id: slotForm.branch_id ? Number(slotForm.branch_id) : null,
         team_member_id: slotForm.team_member_id === '' ? null : Number(slotForm.team_member_id),
+        class_type: slotForm.class_type || 'experimental_group',
         title: slotForm.title || null,
         starts_at: new Date(slotForm.starts_at).toISOString(),
         ends_at: new Date(slotForm.ends_at).toISOString(),
@@ -165,6 +174,7 @@ export default function TrialBookingsManage() {
         branch_id: Number(recurringForm.branch_id),
         team_member_id:
           recurringForm.team_member_id === '' ? null : Number(recurringForm.team_member_id),
+        class_type: recurringForm.class_type || 'experimental_group',
         title: recurringForm.title || null,
         capacity: Math.max(Number(recurringForm.capacity) || 1, 1),
         is_published: recurringForm.is_published,
@@ -282,6 +292,19 @@ export default function TrialBookingsManage() {
                 {teamMembers.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name} — {m.role}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={recurringForm.class_type}
+                onChange={(event) =>
+                  setRecurringForm((prev) => ({ ...prev, class_type: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                {CLASS_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    Type of Experimental Class: {option.label}
                   </option>
                 ))}
               </select>
@@ -433,6 +456,19 @@ export default function TrialBookingsManage() {
                   </option>
                 ))}
               </select>
+              <select
+                value={slotForm.class_type}
+                onChange={(event) =>
+                  setSlotForm((prev) => ({ ...prev, class_type: event.target.value }))
+                }
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                {CLASS_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    Type of Experimental Class: {option.label}
+                  </option>
+                ))}
+              </select>
               <input
                 type="text"
                 placeholder="Título (ex: Turma Experimental Adulto)"
@@ -529,6 +565,11 @@ export default function TrialBookingsManage() {
                       </p>
                       <p className="text-xs text-slate-500">
                         {slot.branch_name || 'Unidade não definida'}
+                        {` · ${
+                          slot.class_type === 'private_class'
+                            ? 'Private Class'
+                            : 'Experimental Class Group'
+                        }`}
                         {slot.instructor_name ? ` · Prof. ${slot.instructor_name}` : ''} · Capacidade:{' '}
                         {slot.capacity} ·{' '}
                         {slot.is_cancelled ? 'Cancelado' : slot.is_published ? 'Publicado' : 'Rascunho'}
@@ -626,6 +667,55 @@ export default function TrialBookingsManage() {
                   <p className="text-xs text-slate-500">
                     Fonte: {lead.source || 'website'} · Status: {lead.status}
                   </p>
+                  {(lead.requested_class_type ||
+                    lead.has_gi != null ||
+                    lead.has_previous_experience != null ||
+                    lead.gender) ? (
+                    <div className="mt-1 text-xs text-slate-600 space-y-1">
+                      {lead.requested_class_type ? (
+                        <p>
+                          Tipo:{' '}
+                          {lead.requested_class_type === 'private_class'
+                            ? 'Private Class'
+                            : 'Experimental Class Group'}
+                        </p>
+                      ) : null}
+                      {lead.has_gi != null ? (
+                        <p>
+                          Possui kimono? {lead.has_gi ? 'Sim' : 'Não'}
+                          {!lead.has_gi && lead.gi_size ? ` · Tamanho: ${lead.gi_size}` : ''}
+                        </p>
+                      ) : null}
+                      {lead.has_previous_experience != null ? (
+                        <p>
+                          Já praticou? {lead.has_previous_experience ? 'Sim' : 'Não'}
+                          {lead.has_previous_experience && lead.experience_duration
+                            ? ` · Tempo: ${lead.experience_duration}`
+                            : ''}
+                          {lead.has_previous_experience && lead.current_belt
+                            ? ` · Faixa: ${lead.current_belt}`
+                            : ''}
+                          {lead.has_previous_experience && lead.stripe_count != null
+                            ? ` · Listras: ${lead.stripe_count}`
+                            : ''}
+                        </p>
+                      ) : null}
+                      {lead.previous_team ? <p>Equipe anterior: {lead.previous_team}</p> : null}
+                      {lead.gender ? (
+                        <p>
+                          Sexo:{' '}
+                          {lead.gender === 'female'
+                            ? 'Feminino'
+                            : lead.gender === 'male'
+                              ? 'Masculino'
+                              : 'Prefiro não informar'}
+                          {lead.gender === 'female' && lead.prefer_female_instructor != null
+                            ? ` · Prefere professora: ${lead.prefer_female_instructor ? 'Sim' : 'Não'}`
+                            : ''}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {lead.notes && <p className="text-sm text-slate-700 mt-1">{lead.notes}</p>}
                   <div className="mt-2 flex gap-2">
                     <button
