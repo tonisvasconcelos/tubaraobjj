@@ -6,6 +6,7 @@ const BackgroundVideo = () => {
   const [allowVideo, setAllowVideo] = useState(false)
   const [startVideo, setStartVideo] = useState(false)
   const backgroundVideo = `${baseUrl}videos/background.mp4`
+  const backgroundVideoMobile = `${baseUrl}videos/background-mobile.mp4`
   const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg`
 
   useEffect(() => {
@@ -67,6 +68,7 @@ const BackgroundVideo = () => {
           poster={fallbackPoster}
           aria-hidden="true"
         >
+          <source media="(max-width: 768px)" src={backgroundVideoMobile} type="video/mp4" />
           <source src={backgroundVideo} type="video/mp4" />
         </video>
       )}
