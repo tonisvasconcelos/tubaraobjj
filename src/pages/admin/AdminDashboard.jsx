@@ -1,12 +1,28 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Users, MapPin, ShoppingBag, Mail, Star, Calendar, LogOut } from 'lucide-react'
+import {
+  Users,
+  UserCircle2,
+  MapPin,
+  ShoppingBag,
+  Mail,
+  Star,
+  Calendar,
+  ClipboardList,
+  MessageSquare,
+  LogOut,
+} from 'lucide-react'
 
 const navItems = [
   { path: 'team', label: 'Equipe', icon: Users },
   { path: 'schedules', label: 'Horários', icon: Calendar },
   { path: 'branches', label: 'Unidades', icon: MapPin },
   { path: 'products', label: 'Loja', icon: ShoppingBag },
+  { path: 'students', label: 'Alunos', icon: UserCircle2 },
+  { path: 'plans', label: 'Planos', icon: ClipboardList },
+  { path: 'trial', label: 'Aula Experimental', icon: Calendar },
+  { path: 'invoices', label: 'Faturas', icon: ClipboardList },
+  { path: 'student-messages', label: 'Mensagens Alunos', icon: MessageSquare },
   { path: 'contacts', label: 'Contatos', icon: Mail },
   { path: 'highlights', label: 'Destaques', icon: Star },
 ]

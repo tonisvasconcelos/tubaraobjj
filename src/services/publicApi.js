@@ -68,6 +68,30 @@ export async function submitTrialLead(data) {
   return result
 }
 
+export async function getTrialSlots(params = {}) {
+  const query = new URLSearchParams()
+  if (params.from) query.set('from', params.from)
+  if (params.to) query.set('to', params.to)
+  if (params.branch_id) query.set('branch_id', String(params.branch_id))
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  try {
+    return await get(`/api/trial/slots${suffix}`)
+  } catch {
+    return []
+  }
+}
+
+export async function createTrialReservation(data) {
+  const res = await fetch(`${API_URL}/api/trial/reservations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const result = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(result.error || 'Falha ao reservar aula experimental')
+  return result
+}
+
 export async function createCheckoutSession(data) {
   const res = await fetch(`${API_URL}/api/checkout/session`, {
     method: 'POST',

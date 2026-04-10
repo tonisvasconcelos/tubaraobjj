@@ -17,6 +17,7 @@ export const translations = {
     'nav.team': 'Equipe',
     'nav.addresses': 'Unidades',
     'nav.store': 'Loja',
+    'nav.studentArea': 'Área do Aluno',
     'nav.contact': 'Contato',
 
     'hero.brand': 'tubarão',
@@ -138,6 +139,7 @@ export const translations = {
     'nav.team': 'Team',
     'nav.addresses': 'Locations',
     'nav.store': 'Store',
+    'nav.studentArea': 'Student Area',
     'nav.contact': 'Contact',
 
     'hero.brand': 'tubarão',
@@ -259,6 +261,7 @@ export const translations = {
     'nav.team': 'Equipo',
     'nav.addresses': 'Sedes',
     'nav.store': 'Tienda',
+    'nav.studentArea': 'Área del Alumno',
     'nav.contact': 'Contacto',
 
     'hero.brand': 'tubarão',

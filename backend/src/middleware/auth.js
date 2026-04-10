@@ -20,3 +20,23 @@ export function authMiddleware(req, res, next) {
 export function signToken(payload) {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
+
+export function signStudentToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '30d' })
+}
+
+export function requireAdmin(req, res, next) {
+  const role = req.user?.role
+  // Backward compatibility for older admin tokens that don't include role.
+  if (!role || role === 'admin') {
+    return next()
+  }
+  return res.status(403).json({ error: 'Acesso restrito ao administrador' })
+}
+
+export function requireStudent(req, res, next) {
+  if (req.user?.role === 'student') {
+    return next()
+  }
+  return res.status(403).json({ error: 'Acesso restrito ao aluno' })
+}

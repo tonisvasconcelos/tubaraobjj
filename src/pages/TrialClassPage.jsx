@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Seo from '../components/seo/Seo'
-import { submitTrialLead } from '../services/publicApi'
+import { createTrialReservation, getTrialSlots } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
 import { trackEvent } from '../lib/analytics'
 
@@ -9,15 +9,44 @@ const initialForm = {
   email: '',
   phone: '',
   interestProgram: '',
-  preferredTime: '',
   notes: '',
 }
 
 export default function TrialClassPage() {
   const { t } = useLanguage()
   const [form, setForm] = useState(initialForm)
+  const [slots, setSlots] = useState([])
+  const [selectedSlotId, setSelectedSlotId] = useState('')
+  const [loadingSlots, setLoadingSlots] = useState(true)
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  const availableSlots = useMemo(
+    () =>
+      slots.filter(
+        (slot) =>
+          Number(slot.available_spots || 0) > 0 && new Date(slot.starts_at).getTime() > Date.now()
+      ),
+    [slots]
+  )
+
+  useEffect(() => {
+    async function loadSlots() {
+      setLoadingSlots(true)
+      try {
+        const from = new Date().toISOString()
+        const to = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString()
+        const data = await getTrialSlots({ from, to })
+        setSlots(Array.isArray(data) ? data : [])
+      } catch (_error) {
+        setSlots([])
+      } finally {
+        setLoadingSlots(false)
+      }
+    }
+
+    loadSlots()
+  }, [])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -25,10 +54,25 @@ export default function TrialClassPage() {
     setErrorMessage('')
 
     try {
-      await submitTrialLead(form)
+      if (!selectedSlotId) {
+        throw new Error('Selecione um horário disponível para concluir o agendamento.')
+      }
+      await createTrialReservation({
+        trialSlotId: Number(selectedSlotId),
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        interestProgram: form.interestProgram || null,
+        notes: form.notes || null,
+      })
       setStatus('success')
       setForm(initialForm)
-      trackEvent('trial_submit', { source: 'trial_page' })
+      setSelectedSlotId('')
+      trackEvent('trial_submit', { source: 'trial_page_calendar', slot_id: selectedSlotId })
+      const from = new Date().toISOString()
+      const to = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString()
+      const data = await getTrialSlots({ from, to })
+      setSlots(Array.isArray(data) ? data : [])
     } catch (error) {
       setStatus('error')
       setErrorMessage(error instanceof Error ? error.message : t('trial.error'))
@@ -56,6 +100,43 @@ export default function TrialClassPage() {
 
           <div className="mt-10 bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-md p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-slate-700 mb-2">Escolha um horário disponível</p>
+                {loadingSlots ? (
+                  <p className="text-sm text-slate-500">Carregando horários...</p>
+                ) : availableSlots.length === 0 ? (
+                  <p className="text-sm text-slate-500">
+                    No momento não há horários publicados. Envie seus dados e retornaremos com opções.
+                  </p>
+                ) : (
+                  <div className="max-h-56 overflow-auto space-y-2 border border-slate-200 rounded-lg p-3 bg-white">
+                    {availableSlots.map((slot) => (
+                      <label key={slot.id} className="flex items-start gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="trial-slot"
+                          value={slot.id}
+                          checked={String(selectedSlotId) === String(slot.id)}
+                          onChange={(event) => setSelectedSlotId(event.target.value)}
+                          className="mt-1"
+                        />
+                        <span className="text-sm text-slate-700">
+                          <strong>{slot.branch_name || slot.title || 'Aula experimental'}</strong> -{' '}
+                          {new Date(slot.starts_at).toLocaleString('pt-BR', {
+                            weekday: 'short',
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}{' '}
+                          ({slot.available_spots} vaga{slot.available_spots > 1 ? 's' : ''})
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <input
                   required
@@ -94,16 +175,6 @@ export default function TrialClassPage() {
                   className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400"
                 />
               </div>
-
-              <input
-                type="text"
-                value={form.preferredTime}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, preferredTime: event.target.value }))
-                }
-                placeholder={t('trial.placeholder.time')}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
 
               <textarea
                 rows={4}

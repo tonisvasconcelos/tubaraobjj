@@ -113,6 +113,35 @@ CREATE TABLE IF NOT EXISTS leads (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Trial booking slots (calendar availability)
+CREATE TABLE IF NOT EXISTS trial_slots (
+  id SERIAL PRIMARY KEY,
+  branch_id INT REFERENCES branches(id) ON DELETE SET NULL,
+  title VARCHAR(255),
+  starts_at TIMESTAMPTZ NOT NULL,
+  ends_at TIMESTAMPTZ NOT NULL,
+  capacity INT NOT NULL DEFAULT 1 CHECK (capacity > 0),
+  is_published BOOLEAN DEFAULT true,
+  is_cancelled BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Public reservations for trial slots
+CREATE TABLE IF NOT EXISTS trial_reservations (
+  id SERIAL PRIMARY KEY,
+  trial_slot_id INT NOT NULL REFERENCES trial_slots(id) ON DELETE CASCADE,
+  lead_id INT REFERENCES leads(id) ON DELETE SET NULL,
+  student_id INT,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(100),
+  notes TEXT,
+  status VARCHAR(40) NOT NULL DEFAULT 'confirmed',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Customers (commerce identity)
 CREATE TABLE IF NOT EXISTS customers (
   id SERIAL PRIMARY KEY,
@@ -138,6 +167,82 @@ CREATE TABLE IF NOT EXISTS plans (
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS allowed_training_days TEXT;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS allowed_training_times TEXT;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS supported_student_levels TEXT;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS allowed_branch_ids JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE plans ADD COLUMN IF NOT EXISTS monthly_fee_brl DECIMAL(10,2);
+UPDATE plans SET monthly_fee_brl = price WHERE monthly_fee_brl IS NULL;
+
+-- Students (portal credentials managed by admin)
+CREATE TABLE IF NOT EXISTS students (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  phone VARCHAR(100),
+  student_level VARCHAR(100),
+  status VARCHAR(40) NOT NULL DEFAULT 'active',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'trial_reservations_student_id_fkey'
+  ) THEN
+    ALTER TABLE trial_reservations
+      ADD CONSTRAINT trial_reservations_student_id_fkey
+      FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+-- Student to plan assignment history
+CREATE TABLE IF NOT EXISTS student_plan_assignments (
+  id SERIAL PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  plan_id INT NOT NULL REFERENCES plans(id) ON DELETE RESTRICT,
+  status VARCHAR(40) NOT NULL DEFAULT 'active',
+  starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ends_at TIMESTAMPTZ,
+  custom_monthly_fee_brl DECIMAL(10,2),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Student messages (student/admin communication)
+CREATE TABLE IF NOT EXISTS student_messages (
+  id SERIAL PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  sender_role VARCHAR(40) NOT NULL,
+  subject VARCHAR(255),
+  body TEXT NOT NULL,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Monthly invoices controlled by admin
+CREATE TABLE IF NOT EXISTS invoices (
+  id SERIAL PRIMARY KEY,
+  student_id INT NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  plan_assignment_id INT REFERENCES student_plan_assignments(id) ON DELETE SET NULL,
+  reference_month DATE NOT NULL,
+  due_date DATE,
+  amount_brl DECIMAL(10,2) NOT NULL DEFAULT 0,
+  status VARCHAR(40) NOT NULL DEFAULT 'open',
+  paid_at TIMESTAMPTZ,
+  payment_method VARCHAR(60),
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(student_id, reference_month)
 );
 
 -- Orders
@@ -257,6 +362,14 @@ CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(customer_id);
 CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_trial_slots_starts_at ON trial_slots(starts_at);
+CREATE INDEX IF NOT EXISTS idx_trial_reservations_slot ON trial_reservations(trial_slot_id);
+CREATE INDEX IF NOT EXISTS idx_trial_reservations_email ON trial_reservations(email);
+CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
+CREATE INDEX IF NOT EXISTS idx_assignments_student ON student_plan_assignments(student_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_student ON invoices(student_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_reference_month ON invoices(reference_month);
+CREATE INDEX IF NOT EXISTS idx_student_messages_student ON student_messages(student_id);
 
 -- Gallery feature removed: drop legacy table if it exists
 DROP TABLE IF EXISTS gallery_items;

@@ -6,6 +6,11 @@ import ProductsManage from './ProductsManage'
 import ContactsList from './ContactsList'
 import HighlightsManage from './HighlightsManage'
 import SchedulesManage from './SchedulesManage'
+import StudentsManage from './StudentsManage'
+import PlansManage from './PlansManage'
+import TrialBookingsManage from './TrialBookingsManage'
+import InvoicesManage from './InvoicesManage'
+import StudentMessagesManage from './StudentMessagesManage'
 
 const SECTIONS = {
   team: TeamManage,
@@ -14,6 +19,11 @@ const SECTIONS = {
   contacts: ContactsList,
   highlights: HighlightsManage,
   schedules: SchedulesManage,
+  students: StudentsManage,
+  plans: PlansManage,
+  trial: TrialBookingsManage,
+  invoices: InvoicesManage,
+  'student-messages': StudentMessagesManage,
 }
 
 export default function AdminSection() {

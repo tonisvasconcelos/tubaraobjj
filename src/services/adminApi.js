@@ -95,4 +95,135 @@ export const admin = {
       throw new Error(data.error || 'Erro ao remover')
     },
   },
+  students: {
+    list: () => authFetch('/api/admin/students').then((r) => r.json()),
+    create: (body) => authFetch('/api/admin/students', { method: 'POST', body: JSON.stringify(body) }).then((r) => r.json()),
+    update: (id, body) => authFetch(`/api/admin/students/${id}`, { method: 'PUT', body: JSON.stringify(body) }).then((r) => r.json()),
+    delete: (id) => authFetch(`/api/admin/students/${id}`, { method: 'DELETE' }),
+    resetPassword: async (id, password) => {
+      const r = await authFetch(`/api/admin/students/${id}/reset-password`, {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao redefinir senha')
+      return data
+    },
+  },
+  plans: {
+    list: () => authFetch('/api/admin/plans').then((r) => r.json()),
+    create: async (body) => {
+      const r = await authFetch('/api/admin/plans', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar plano')
+      return data
+    },
+    update: async (id, body) => {
+      const r = await authFetch(`/api/admin/plans/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar plano')
+      return data
+    },
+    delete: async (id) => {
+      const r = await authFetch(`/api/admin/plans/${id}`, { method: 'DELETE' })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover plano')
+    },
+  },
+  assignments: {
+    list: (studentId) => {
+      const query = studentId ? `?student_id=${encodeURIComponent(studentId)}` : ''
+      return authFetch(`/api/admin/plan-assignments${query}`).then((r) => r.json())
+    },
+    create: async (body) => {
+      const r = await authFetch('/api/admin/plan-assignments', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar vínculo')
+      return data
+    },
+    update: async (id, body) => {
+      const r = await authFetch(`/api/admin/plan-assignments/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar vínculo')
+      return data
+    },
+  },
+  trial: {
+    listSlots: () => authFetch('/api/admin/trial-slots').then((r) => r.json()),
+    createSlot: async (body) => {
+      const r = await authFetch('/api/admin/trial-slots', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar horário')
+      return data
+    },
+    updateSlot: async (id, body) => {
+      const r = await authFetch(`/api/admin/trial-slots/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar horário')
+      return data
+    },
+    deleteSlot: async (id) => {
+      const r = await authFetch(`/api/admin/trial-slots/${id}`, { method: 'DELETE' })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover horário')
+    },
+    listReservations: () => authFetch('/api/admin/trial-reservations').then((r) => r.json()),
+    updateReservation: async (id, body) => {
+      const r = await authFetch(`/api/admin/trial-reservations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar reserva')
+      return data
+    },
+    listLeads: () => authFetch('/api/admin/leads').then((r) => r.json()),
+    updateLead: async (id, body) => {
+      const r = await authFetch(`/api/admin/leads/${id}`, { method: 'PATCH', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar lead')
+      return data
+    },
+  },
+  invoices: {
+    list: (studentId) => {
+      const query = studentId ? `?student_id=${encodeURIComponent(studentId)}` : ''
+      return authFetch(`/api/admin/invoices${query}`).then((r) => r.json())
+    },
+    create: async (body) => {
+      const r = await authFetch('/api/admin/invoices', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar fatura')
+      return data
+    },
+    update: async (id, body) => {
+      const r = await authFetch(`/api/admin/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar fatura')
+      return data
+    },
+  },
+  studentMessages: {
+    list: (studentId) => {
+      const query = studentId ? `?student_id=${encodeURIComponent(studentId)}` : ''
+      return authFetch(`/api/admin/student-messages${query}`).then((r) => r.json())
+    },
+    create: async (body) => {
+      const r = await authFetch('/api/admin/student-messages', { method: 'POST', body: JSON.stringify(body) })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao enviar mensagem')
+      return data
+    },
+    markRead: async (id) => {
+      const r = await authFetch(`/api/admin/student-messages/${id}/read`, { method: 'PATCH' })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao marcar mensagem')
+      return data
+    },
+  },
 }

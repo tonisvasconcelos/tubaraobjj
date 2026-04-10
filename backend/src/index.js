@@ -16,6 +16,9 @@ import plansRoutes from './routes/plans.js'
 import ordersRoutes from './routes/orders.js'
 import subscriptionsRoutes from './routes/subscriptions.js'
 import couponsRoutes from './routes/coupons.js'
+import trialRoutes from './routes/trial.js'
+import studentRoutes from './routes/student.js'
+import adminAcademyRoutes from './routes/adminAcademy.js'
 import { requestContext } from './middleware/requestContext.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -43,7 +46,10 @@ app.use('/api/plans', plansRoutes)
 app.use('/api/orders', ordersRoutes)
 app.use('/api/subscriptions', subscriptionsRoutes)
 app.use('/api/coupons', couponsRoutes)
+app.use('/api/trial', trialRoutes)
+app.use('/api/student', studentRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/admin', adminAcademyRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true })

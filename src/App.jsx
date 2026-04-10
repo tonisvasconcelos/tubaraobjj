@@ -12,6 +12,10 @@ const SchedulePage = lazy(() => import('./pages/SchedulePage'))
 const TrialClassPage = lazy(() => import('./pages/TrialClassPage'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminSection = lazy(() => import('./pages/admin/AdminSection'))
+const StudentLayout = lazy(() => import('./pages/StudentLayout'))
+const StudentLoginPage = lazy(() => import('./pages/StudentLoginPage'))
+const StudentDashboardPage = lazy(() => import('./pages/StudentDashboardPage'))
+const StudentMessagesPage = lazy(() => import('./pages/StudentMessagesPage'))
 
 function RouteFallback() {
   return (
@@ -41,6 +45,20 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <AdminLoginPage /> },
         { path: ':section', element: <AdminSection /> },
+      ],
+    },
+    {
+      path: '/aluno',
+      children: [
+        { path: 'login', element: <StudentLoginPage /> },
+        {
+          path: '',
+          element: <StudentLayout />,
+          children: [
+            { index: true, element: <StudentDashboardPage /> },
+            { path: 'mensagens', element: <StudentMessagesPage /> },
+          ],
+        },
       ],
     },
   ],
