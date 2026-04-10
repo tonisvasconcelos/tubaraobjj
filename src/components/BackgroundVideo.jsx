@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react'
 const BackgroundVideo = () => {
   const baseUrl = import.meta.env.BASE_URL
   const [reduceMotion, setReduceMotion] = useState(false)
+  const [allowVideo, setAllowVideo] = useState(false)
+  const [startVideo, setStartVideo] = useState(false)
   const backgroundVideo = `${baseUrl}videos/background.mp4`
+  const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg`
 
   useEffect(() => {
     const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
@@ -21,6 +24,29 @@ const BackgroundVideo = () => {
     return () => mediaQuery.removeListener(onChange)
   }, [])
 
+  useEffect(() => {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+    const saveData = Boolean(connection?.saveData)
+    const effectiveType = connection?.effectiveType || ''
+    const lowBandwidth = effectiveType.includes('2g') || effectiveType === '3g'
+    const isDesktopViewport = window.matchMedia?.('(min-width: 1024px)')?.matches ?? true
+    const deviceMemory = Number(navigator.deviceMemory || 0)
+    const lowMemoryDevice = deviceMemory > 0 && deviceMemory < 4
+
+    const canPlay = !reduceMotion && !saveData && !lowBandwidth && isDesktopViewport && !lowMemoryDevice
+    setAllowVideo(canPlay)
+  }, [reduceMotion])
+
+  useEffect(() => {
+    if (!allowVideo) {
+      setStartVideo(false)
+      return
+    }
+    // Let critical images settle before requesting the large background video.
+    const timer = window.setTimeout(() => setStartVideo(true), 1800)
+    return () => window.clearTimeout(timer)
+  }, [allowVideo])
+
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
       {/* Always-visible fallback background (no logo while video buffers) */}
@@ -30,14 +56,15 @@ const BackgroundVideo = () => {
         aria-hidden="true"
       />
 
-      {!reduceMotion && (
+      {allowVideo && startVideo && (
         <video
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
+          poster={fallbackPoster}
           aria-hidden="true"
         >
           <source src={backgroundVideo} type="video/mp4" />

@@ -3,6 +3,13 @@ import { useLanguage } from '../i18n/LanguageProvider'
 const AboutSection = () => {
   const baseUrl = import.meta.env.BASE_URL
   const { t } = useLanguage()
+  const aboutWidths = [640, 960, 1280, 1600]
+  const aboutWebpSrcSet = aboutWidths
+    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.webp ${width}w`)
+    .join(', ')
+  const aboutJpgSrcSet = aboutWidths
+    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.jpg ${width}w`)
+    .join(', ')
   const aboutData = {
     professorImage: `${baseUrl}images/TubaDesertPB.JPG`,
   }
@@ -11,18 +18,22 @@ const AboutSection = () => {
     <section id="quem-somos" className="py-0 bg-white/55 backdrop-blur-[2px]">
       <div className="w-full">
         <div className="relative overflow-hidden border-y border-white/50 shadow-xl">
-          <img
-            src={aboutData.professorImage}
-            alt={t('about.quoteAuthor')}
-            width="1400"
-            height="800"
-            fetchPriority="high"
-            decoding="async"
-            className="h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full object-cover opacity-80"
-            onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/1400x800/1a1a1a/ffffff?text=Prof.+Márcio+Tubarão'
-            }}
-          />
+          <picture>
+            <source type="image/webp" srcSet={aboutWebpSrcSet} sizes="100vw" />
+            <source type="image/jpeg" srcSet={aboutJpgSrcSet} sizes="100vw" />
+            <img
+              src={`${baseUrl}images/optimized/about-marcio-1280.jpg`}
+              alt={t('about.quoteAuthor')}
+              width="1400"
+              height="800"
+              loading="lazy"
+              decoding="async"
+              className="h-[280px] sm:h-[360px] md:h-[480px] lg:h-[540px] w-full object-cover opacity-80"
+              onError={(event) => {
+                event.currentTarget.src = aboutData.professorImage
+              }}
+            />
+          </picture>
 
           <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-black/60 via-black/35 to-transparent" />
 

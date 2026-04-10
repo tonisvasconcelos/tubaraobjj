@@ -62,6 +62,9 @@ const HighlightsCarousel = () => {
                   <img
                     src={highlight.image_url || ''}
                     alt={highlight.title}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(min-width: 1024px) 40vw, 90vw"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/800x450/1a1a1a/ffffff?text=' + encodeURIComponent(highlight.title)

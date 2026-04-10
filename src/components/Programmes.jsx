@@ -3,6 +3,9 @@ import { useLanguage } from '../i18n/LanguageProvider'
 const Programmes = () => {
   const baseUrl = import.meta.env.BASE_URL
   const { t } = useLanguage()
+  const programmeWidths = [480, 768, 1024, 1366]
+  const buildSrcSet = (imageId, extension) =>
+    programmeWidths.map((width) => `${baseUrl}images/optimized/${imageId}-${width}.${extension} ${width}w`).join(', ')
 
   const programmeDefs = [
     {
@@ -10,28 +13,32 @@ const Programmes = () => {
       titleKey: 'programmes.p1.title',
       descKey: 'programmes.p1.desc',
       altKey: 'programmes.p1.alt',
-      image: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
+      imageId: 'programme-main',
+      fallbackImage: `${baseUrl}images/Site_ImageBackGround_001.PNG`,
     },
     {
       id: 2,
       titleKey: 'programmes.p2.title',
       descKey: 'programmes.p2.desc',
       altKey: 'programmes.p2.alt',
-      image: `${baseUrl}images/casal.PNG`,
+      imageId: 'programme-couple',
+      fallbackImage: `${baseUrl}images/casal.PNG`,
     },
     {
       id: 3,
       titleKey: 'programmes.p3.title',
       descKey: 'programmes.p3.desc',
       altKey: 'programmes.p3.alt',
-      image: `${baseUrl}images/TubaFemTurma.JPG`,
+      imageId: 'programme-fem',
+      fallbackImage: `${baseUrl}images/TubaFemTurma.JPG`,
     },
     {
       id: 4,
       titleKey: 'programmes.p4.title',
       descKey: 'programmes.p4.desc',
       altKey: 'programmes.p4.alt',
-      image: `${baseUrl}images/TubaKids.JPG`,
+      imageId: 'programme-kids',
+      fallbackImage: `${baseUrl}images/TubaKids.JPG`,
     },
   ]
 
@@ -48,12 +55,20 @@ const Programmes = () => {
               className="h-full overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-white/60"
             >
               <div className="relative h-52 sm:h-56 lg:h-64">
-                <img
-                  src={programme.image}
-                  alt={t(programme.altKey)}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                  loading="lazy"
-                />
+                <picture>
+                  <source type="image/webp" srcSet={buildSrcSet(programme.imageId, 'webp')} sizes="(min-width: 1024px) 50vw, 100vw" />
+                  <source type="image/jpeg" srcSet={buildSrcSet(programme.imageId, 'jpg')} sizes="(min-width: 1024px) 50vw, 100vw" />
+                  <img
+                    src={`${baseUrl}images/optimized/${programme.imageId}-768.jpg`}
+                    alt={t(programme.altKey)}
+                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                    onError={(event) => {
+                      event.currentTarget.src = programme.fallbackImage
+                    }}
+                  />
+                </picture>
               </div>
 
               <div className="flex flex-1 flex-col p-6 sm:p-7">
