@@ -34,7 +34,7 @@ const imageJobs = [
   },
   {
     id: 'programme-fem',
-    input: 'TubaFemTurma.JPG',
+    input: 'TubaFem.jpg',
     widths: [480, 768, 1024, 1366],
   },
   {

@@ -30,7 +30,7 @@ const Programmes = () => {
       descKey: 'programmes.p3.desc',
       altKey: 'programmes.p3.alt',
       imageId: 'programme-fem',
-      fallbackImage: `${baseUrl}images/TubaFemTurma.JPG`,
+      fallbackImage: `${baseUrl}images/TubaFem.jpg`,
     },
     {
       id: 4,
