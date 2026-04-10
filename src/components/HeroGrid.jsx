@@ -1,13 +1,20 @@
 import { Link } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageProvider'
+import { HERO_OPTIMIZED_MEDIA_VERSION } from '../constants/mediaVersion'
 
 const HeroGrid = () => {
   const baseUrl = import.meta.env.BASE_URL
   const { t } = useLanguage()
   const heroWidths = [640, 960, 1280, 1600]
+  const q = `v=${HERO_OPTIMIZED_MEDIA_VERSION}`
   const buildSrcSet = (imageId, extension) =>
-    heroWidths.map((width) => `${baseUrl}images/optimized/${imageId}-${width}.${extension} ${width}w`).join(', ')
+    heroWidths
+      .map(
+        (width) =>
+          `${baseUrl}images/optimized/${imageId}-${width}.${extension}?${q} ${width}w`
+      )
+      .join(', ')
   const heroCards = [
     {
       id: 3,
@@ -47,7 +54,7 @@ const HeroGrid = () => {
                 <source type="image/webp" srcSet={buildSrcSet(card.imageId, 'webp')} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />
                 <source type="image/jpeg" srcSet={buildSrcSet(card.imageId, 'jpg')} sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" />
                 <img
-                  src={`${baseUrl}images/optimized/${card.imageId}-960.jpg`}
+                  src={`${baseUrl}images/optimized/${card.imageId}-960.jpg?${q}`}
                   alt={t(card.titleKey)}
                   loading={index === 0 ? 'eager' : 'lazy'}
                   decoding="async"

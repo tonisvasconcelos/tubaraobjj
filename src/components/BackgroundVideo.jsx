@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { HERO_OPTIMIZED_MEDIA_VERSION } from '../constants/mediaVersion'
 
 const BackgroundVideo = () => {
   const baseUrl = import.meta.env.BASE_URL
@@ -10,7 +11,7 @@ const BackgroundVideo = () => {
   const backgroundVideo = `${baseUrl}videos/background.mp4`
   const backgroundVideoMobile = `${baseUrl}videos/background-mobile.mp4`
   const backgroundVideoMobileLite = `${baseUrl}videos/background-mobile-lite.mp4`
-  const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg`
+  const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg?v=${HERO_OPTIMIZED_MEDIA_VERSION}`
 
   useEffect(() => {
     const mediaQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)')
