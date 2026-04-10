@@ -32,6 +32,19 @@ function toSlug(text) {
     .replace(/^-+|-+$/g, '')
 }
 
+function isPostgresUniqueViolation(error) {
+  return Boolean(error && error.code === '23505')
+}
+
+const TRIAL_CLASS_TYPES = new Set(['experimental_group', 'private_class'])
+
+function normalizeTrialClassType(value) {
+  const v = String(value || '').trim()
+  if (!v) return 'experimental_group'
+  if (!TRIAL_CLASS_TYPES.has(v)) return null
+  return v
+}
+
 // ----- Students -----
 router.get('/students', async (_req, res) => {
   try {
@@ -193,6 +206,12 @@ router.post('/plans', async (req, res) => {
     res.status(201).json(result.rows[0])
   } catch (error) {
     console.error('[admin-academy/plans/create]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({
+        error:
+          'Já existe um plano com este nome ou slug. Altere o nome ou defina um identificador (slug) único.',
+      })
+    }
     res.status(500).json({ error: 'Erro ao criar plano' })
   }
 })
@@ -244,6 +263,11 @@ router.put('/plans/:id', async (req, res) => {
     res.json(result.rows[0])
   } catch (error) {
     console.error('[admin-academy/plans/update]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({
+        error: 'Já existe outro plano com este slug. Escolha um identificador (slug) diferente.',
+      })
+    }
     res.status(500).json({ error: 'Erro ao atualizar plano' })
   }
 })
@@ -364,7 +388,7 @@ router.get('/trial-slots', async (_req, res) => {
 
 router.post('/trial-slots', async (req, res) => {
   try {
-    const { branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled, team_member_id } =
+    const { branch_id, title, starts_at, ends_at, capacity, is_published, is_cancelled, team_member_id, class_type } =
       req.body || {}
     if (!starts_at || !ends_at) {
       return res.status(400).json({ error: 'starts_at e ends_at são obrigatórios' })
@@ -380,13 +404,16 @@ router.post('/trial-slots', async (req, res) => {
       const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [tmId])
       if (tm.rows.length === 0) return res.status(400).json({ error: 'Professor não encontrado na equipe' })
     }
+    const classType = normalizeTrialClassType(class_type)
+    if (!classType) return res.status(400).json({ error: 'class_type inválido' })
     const result = await pool.query(
-      `INSERT INTO trial_slots (branch_id, team_member_id, title, starts_at, ends_at, capacity, is_published, is_cancelled)
-       VALUES ($1, $2, $3, $4::timestamptz, $5::timestamptz, $6, $7, $8)
+      `INSERT INTO trial_slots (branch_id, team_member_id, class_type, title, starts_at, ends_at, capacity, is_published, is_cancelled)
+       VALUES ($1, $2, $3, $4, $5::timestamptz, $6::timestamptz, $7, $8, $9)
        RETURNING *`,
       [
         branch_id ? Number(branch_id) : null,
         tmId,
+        classType,
         title ? String(title).trim().slice(0, 255) : null,
         starts_at,
         ends_at,
@@ -409,6 +436,7 @@ router.post('/trial-slots/bulk', async (req, res) => {
     const {
       branch_id,
       team_member_id,
+      class_type,
       title,
       capacity,
       is_published,
@@ -470,6 +498,8 @@ router.post('/trial-slots/bulk', async (req, res) => {
         return res.status(400).json({ error: 'Professor não encontrado na equipe' })
       }
     }
+    const classType = normalizeTrialClassType(class_type)
+    if (!classType) return res.status(400).json({ error: 'class_type inválido' })
 
     const cap = Math.max(Number(capacity) || 1, 1)
     const pub = is_published !== false
@@ -505,10 +535,10 @@ router.post('/trial-slots/bulk', async (req, res) => {
       }
 
       const ins = await client.query(
-        `INSERT INTO trial_slots (branch_id, team_member_id, title, starts_at, ends_at, capacity, is_published, is_cancelled)
-         VALUES ($1, $2, $3, $4::timestamptz, $5::timestamptz, $6, $7, $8)
+        `INSERT INTO trial_slots (branch_id, team_member_id, class_type, title, starts_at, ends_at, capacity, is_published, is_cancelled)
+         VALUES ($1, $2, $3, $4, $5::timestamptz, $6::timestamptz, $7, $8, $9)
          RETURNING id`,
-        [branchId, tmId, ttl, startsIso, endsIso, cap, pub, cancelled]
+        [branchId, tmId, classType, ttl, startsIso, endsIso, cap, pub, cancelled]
       )
       createdIds.push(ins.rows[0].id)
     }
@@ -539,6 +569,7 @@ router.put('/trial-slots/:id', async (req, res) => {
       is_published,
       is_cancelled,
       team_member_id,
+      class_type,
     } = req.body || {}
     const tmId =
       team_member_id === '' || team_member_id === undefined || team_member_id === null
@@ -551,15 +582,18 @@ router.put('/trial-slots/:id', async (req, res) => {
       const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [tmId])
       if (tm.rows.length === 0) return res.status(400).json({ error: 'Professor não encontrado na equipe' })
     }
+    const classType = normalizeTrialClassType(class_type)
+    if (!classType) return res.status(400).json({ error: 'class_type inválido' })
     const result = await pool.query(
       `UPDATE trial_slots
-       SET branch_id = $1, team_member_id = $2, title = $3, starts_at = $4::timestamptz, ends_at = $5::timestamptz, capacity = $6,
-           is_published = $7, is_cancelled = $8, updated_at = NOW()
-       WHERE id = $9
+       SET branch_id = $1, team_member_id = $2, class_type = $3, title = $4, starts_at = $5::timestamptz, ends_at = $6::timestamptz, capacity = $7,
+           is_published = $8, is_cancelled = $9, updated_at = NOW()
+       WHERE id = $10
        RETURNING *`,
       [
         branch_id ? Number(branch_id) : null,
         tmId,
+        classType,
         title ? String(title).trim().slice(0, 255) : null,
         starts_at,
         ends_at,
