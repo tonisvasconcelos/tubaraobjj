@@ -1,11 +1,15 @@
 import { useLanguage } from '../i18n/LanguageProvider'
+import { PROGRAMMES_OPTIMIZED_MEDIA_VERSION } from '../constants/mediaVersion'
 
 const Programmes = () => {
   const baseUrl = import.meta.env.BASE_URL
   const { t } = useLanguage()
   const programmeWidths = [480, 768, 1024, 1366]
+  const q = `v=${PROGRAMMES_OPTIMIZED_MEDIA_VERSION}`
   const buildSrcSet = (imageId, extension) =>
-    programmeWidths.map((width) => `${baseUrl}images/optimized/${imageId}-${width}.${extension} ${width}w`).join(', ')
+    programmeWidths
+      .map((width) => `${baseUrl}images/optimized/${imageId}-${width}.${extension}?${q} ${width}w`)
+      .join(', ')
 
   const programmeDefs = [
     {
@@ -14,7 +18,7 @@ const Programmes = () => {
       descKey: 'programmes.p1.desc',
       altKey: 'programmes.p1.alt',
       imageId: 'programme-main',
-      fallbackImage: `${baseUrl}images/IMG_7444.JPG`,
+      fallbackImage: `${baseUrl}images/IMG_7444.JPG?${q}`,
     },
     {
       id: 2,
@@ -22,7 +26,7 @@ const Programmes = () => {
       descKey: 'programmes.p2.desc',
       altKey: 'programmes.p2.alt',
       imageId: 'programme-couple',
-      fallbackImage: `${baseUrl}images/Nogi.PNG`,
+      fallbackImage: `${baseUrl}images/Nogi.PNG?${q}`,
     },
     {
       id: 3,
@@ -30,7 +34,7 @@ const Programmes = () => {
       descKey: 'programmes.p3.desc',
       altKey: 'programmes.p3.alt',
       imageId: 'programme-fem',
-      fallbackImage: `${baseUrl}images/TubaFem.jpg`,
+      fallbackImage: `${baseUrl}images/TubaFem.jpg?${q}`,
     },
     {
       id: 4,
@@ -38,7 +42,7 @@ const Programmes = () => {
       descKey: 'programmes.p4.desc',
       altKey: 'programmes.p4.alt',
       imageId: 'programme-kids',
-      fallbackImage: `${baseUrl}images/Kids.png`,
+      fallbackImage: `${baseUrl}images/Kids.png?${q}`,
     },
   ]
 
@@ -59,7 +63,7 @@ const Programmes = () => {
                   <source type="image/webp" srcSet={buildSrcSet(programme.imageId, 'webp')} sizes="(min-width: 1024px) 50vw, 100vw" />
                   <source type="image/jpeg" srcSet={buildSrcSet(programme.imageId, 'jpg')} sizes="(min-width: 1024px) 50vw, 100vw" />
                   <img
-                    src={`${baseUrl}images/optimized/${programme.imageId}-768.jpg`}
+                    src={`${baseUrl}images/optimized/${programme.imageId}-768.jpg?${q}`}
                     alt={t(programme.altKey)}
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                     loading="lazy"
