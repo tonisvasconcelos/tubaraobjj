@@ -44,7 +44,7 @@ const imageJobs = [
   },
   {
     id: 'about-marcio',
-    input: 'TubaDesertPB.JPG',
+    input: 'Tuba Coach.JPG',
     widths: [640, 960, 1280, 1600],
   },
 ]

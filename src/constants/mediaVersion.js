@@ -7,3 +7,6 @@ export const HERO_OPTIMIZED_MEDIA_VERSION = '4'
 
 /** Modalidades (programme-*) — bump when sources or optimized outputs change. */
 export const PROGRAMMES_OPTIMIZED_MEDIA_VERSION = '2'
+
+/** About section (about-marcio-*) — bump when source or optimized outputs change. */
+export const ABOUT_MARCIO_OPTIMIZED_MEDIA_VERSION = '1'

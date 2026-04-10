@@ -1,17 +1,20 @@
 import { useLanguage } from '../i18n/LanguageProvider'
+import { ABOUT_MARCIO_OPTIMIZED_MEDIA_VERSION } from '../constants/mediaVersion'
 
 const AboutSection = () => {
   const baseUrl = import.meta.env.BASE_URL
   const { t } = useLanguage()
   const aboutWidths = [640, 960, 1280, 1600]
+  const q = `v=${ABOUT_MARCIO_OPTIMIZED_MEDIA_VERSION}`
   const aboutWebpSrcSet = aboutWidths
-    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.webp ${width}w`)
+    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.webp?${q} ${width}w`)
     .join(', ')
   const aboutJpgSrcSet = aboutWidths
-    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.jpg ${width}w`)
+    .map((width) => `${baseUrl}images/optimized/about-marcio-${width}.jpg?${q} ${width}w`)
     .join(', ')
+  const coachFallback = `${baseUrl}images/${encodeURIComponent('Tuba Coach.JPG')}?${q}`
   const aboutData = {
-    professorImage: `${baseUrl}images/TubaDesertPB.JPG`,
+    professorImage: coachFallback,
   }
 
   return (
@@ -22,7 +25,7 @@ const AboutSection = () => {
             <source type="image/webp" srcSet={aboutWebpSrcSet} sizes="100vw" />
             <source type="image/jpeg" srcSet={aboutJpgSrcSet} sizes="100vw" />
             <img
-              src={`${baseUrl}images/optimized/about-marcio-1280.jpg`}
+              src={`${baseUrl}images/optimized/about-marcio-1280.jpg?${q}`}
               alt={t('about.quoteAuthor')}
               width="1400"
               height="800"
