@@ -5,6 +5,7 @@ const BackgroundVideo = () => {
   const [reduceMotion, setReduceMotion] = useState(false)
   const [allowVideo, setAllowVideo] = useState(false)
   const [startVideo, setStartVideo] = useState(false)
+  const [useMobileSource, setUseMobileSource] = useState(false)
   const backgroundVideo = `${baseUrl}videos/background.mp4`
   const backgroundVideoMobile = `${baseUrl}videos/background-mobile.mp4`
   const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg`
@@ -28,15 +29,25 @@ const BackgroundVideo = () => {
   useEffect(() => {
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
     const saveData = Boolean(connection?.saveData)
-    const effectiveType = connection?.effectiveType || ''
-    const lowBandwidth = effectiveType.includes('2g') || effectiveType === '3g'
-    const deviceMemory = Number(navigator.deviceMemory || 0)
-    const lowMemoryDevice = deviceMemory > 0 && deviceMemory < 4
 
-    // Allow video on mobile too; only block when the user/device/network signals constraints.
-    const canPlay = !reduceMotion && !saveData && !lowBandwidth && !lowMemoryDevice
+    // Keep video enabled by default on mobile and desktop.
+    // Only explicit user constraints disable it.
+    const canPlay = !reduceMotion && !saveData
     setAllowVideo(canPlay)
   }, [reduceMotion])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia?.('(max-width: 768px)')
+    if (!mediaQuery) return
+    const onChange = () => setUseMobileSource(Boolean(mediaQuery.matches))
+    onChange()
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', onChange)
+      return () => mediaQuery.removeEventListener('change', onChange)
+    }
+    mediaQuery.addListener(onChange)
+    return () => mediaQuery.removeListener(onChange)
+  }, [])
 
   useEffect(() => {
     if (!allowVideo) {
@@ -44,7 +55,7 @@ const BackgroundVideo = () => {
       return
     }
     // Let critical images settle before requesting the large background video.
-    const timer = window.setTimeout(() => setStartVideo(true), 1800)
+    const timer = window.setTimeout(() => setStartVideo(true), 1200)
     return () => window.clearTimeout(timer)
   }, [allowVideo])
 
@@ -64,12 +75,11 @@ const BackgroundVideo = () => {
           muted
           loop
           playsInline
-          preload="none"
+          preload="metadata"
           poster={fallbackPoster}
           aria-hidden="true"
         >
-          <source media="(max-width: 768px)" src={backgroundVideoMobile} type="video/mp4" />
-          <source src={backgroundVideo} type="video/mp4" />
+          <source src={useMobileSource ? backgroundVideoMobile : backgroundVideo} type="video/mp4" />
         </video>
       )}
 
