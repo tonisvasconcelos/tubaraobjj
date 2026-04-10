@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import BackgroundVideo from '../components/BackgroundVideo'
 import Footer from '../components/Footer'
 import AnalyticsPageTracker from '../components/analytics/AnalyticsPageTracker'
+import ScrollToTop from '../components/ScrollToTop'
 import { getOrganizationSchema } from '../seo/organizationSchema'
 
 const MainLayout = () => {
@@ -31,6 +32,7 @@ const MainLayout = () => {
       ) : (
         <BackgroundVideo />
       )}
+      <ScrollToTop />
       <Header />
       <AnalyticsPageTracker />
       <main>

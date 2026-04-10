@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { useAuth } from '../contexts/AuthContext'
+import ScrollToTop from '../components/ScrollToTop'
 
 const adminSeoHelmet = (
   <Helmet>
@@ -18,6 +19,7 @@ export default function AdminLayout() {
       return (
         <>
           {adminSeoHelmet}
+          <ScrollToTop />
           <Outlet />
         </>
       )
@@ -42,6 +44,7 @@ export default function AdminLayout() {
   return (
     <>
       {adminSeoHelmet}
+      <ScrollToTop />
       <Outlet />
     </>
   )

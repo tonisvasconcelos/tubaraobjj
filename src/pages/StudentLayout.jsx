@@ -1,5 +1,6 @@
 import { NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom'
 import { useStudentAuth } from '../contexts/StudentAuthContext'
+import ScrollToTop from '../components/ScrollToTop'
 
 export default function StudentLayout() {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ export default function StudentLayout() {
 
   return (
     <section className="pt-20 pb-12 px-4 sm:px-6 lg:px-8">
+      <ScrollToTop />
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <NavLink
