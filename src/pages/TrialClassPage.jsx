@@ -91,14 +91,15 @@ export default function TrialClassPage() {
       />
       <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 text-center">
-            {t('trial.title')}
-          </h1>
-          <p className="mt-4 text-center text-slate-600 max-w-2xl mx-auto">
-            {t('trial.subtitle')}
-          </p>
-
-          <div className="mt-10 bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-md p-6 sm:p-8">
+          <div className="mt-6 bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-md p-6 sm:p-8">
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 text-center">
+                {t('trial.title')}
+              </h1>
+              <p className="mt-3 text-center text-slate-600 max-w-2xl mx-auto">
+                {t('trial.subtitle')}
+              </p>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <p className="text-sm font-medium text-slate-700 mb-2">Escolha um horário disponível</p>

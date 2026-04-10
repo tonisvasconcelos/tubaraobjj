@@ -6,8 +6,10 @@ const BackgroundVideo = () => {
   const [allowVideo, setAllowVideo] = useState(false)
   const [startVideo, setStartVideo] = useState(false)
   const [useMobileSource, setUseMobileSource] = useState(false)
+  const [useSmallMobileSource, setUseSmallMobileSource] = useState(false)
   const backgroundVideo = `${baseUrl}videos/background.mp4`
   const backgroundVideoMobile = `${baseUrl}videos/background-mobile.mp4`
+  const backgroundVideoMobileLite = `${baseUrl}videos/background-mobile-lite.mp4`
   const fallbackPoster = `${baseUrl}images/optimized/hero-team-1280.jpg`
 
   useEffect(() => {
@@ -50,14 +52,34 @@ const BackgroundVideo = () => {
   }, [])
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia?.('(max-width: 480px)')
+    if (!mediaQuery) return
+    const onChange = () => setUseSmallMobileSource(Boolean(mediaQuery.matches))
+    onChange()
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', onChange)
+      return () => mediaQuery.removeEventListener('change', onChange)
+    }
+    mediaQuery.addListener(onChange)
+    return () => mediaQuery.removeListener(onChange)
+  }, [])
+
+  useEffect(() => {
     if (!allowVideo) {
       setStartVideo(false)
       return
     }
-    // Let critical images settle before requesting the large background video.
-    const timer = window.setTimeout(() => setStartVideo(true), 1200)
+    // Start immediately on mobile, keep desktop warm-up to protect LCP.
+    const delayMs = useMobileSource ? 0 : 900
+    const timer = window.setTimeout(() => setStartVideo(true), delayMs)
     return () => window.clearTimeout(timer)
-  }, [allowVideo])
+  }, [allowVideo, useMobileSource])
+
+  const selectedVideoSource = useMobileSource
+    ? useSmallMobileSource
+      ? backgroundVideoMobileLite
+      : backgroundVideoMobile
+    : backgroundVideo
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -75,11 +97,11 @@ const BackgroundVideo = () => {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload={useMobileSource ? 'auto' : 'metadata'}
           poster={fallbackPoster}
           aria-hidden="true"
         >
-          <source src={useMobileSource ? backgroundVideoMobile : backgroundVideo} type="video/mp4" />
+          <source src={selectedVideoSource} type="video/mp4" />
         </video>
       )}
 
