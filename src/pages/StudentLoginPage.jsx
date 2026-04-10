@@ -2,8 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStudentAuth } from '../contexts/StudentAuthContext'
 
+const LOGIN_BG_FILE = 'ChatGPT Image 4 de ago. de 2025, 16_26_08.png'
+
 export default function StudentLoginPage() {
   const baseUrl = import.meta.env.BASE_URL
+  const loginBgUrl = `${baseUrl}images/${encodeURIComponent(LOGIN_BG_FILE)}`
   const navigate = useNavigate()
   const { login } = useStudentAuth()
   const [email, setEmail] = useState('')
@@ -26,8 +29,13 @@ export default function StudentLoginPage() {
   }
 
   return (
-    <section className="pt-24 pb-16 px-4">
-      <div className="max-w-md mx-auto bg-white border border-slate-200 rounded-xl shadow overflow-hidden">
+    <section
+      className="relative min-h-screen bg-slate-200 bg-cover bg-center bg-no-repeat pt-24 pb-16 px-4"
+      style={{ backgroundImage: `url('${loginBgUrl}')` }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-white/75" aria-hidden="true" />
+      <div className="relative z-10 max-w-md mx-auto">
+      <div className="bg-white border border-slate-200 rounded-xl shadow overflow-hidden">
         <div className="w-full bg-slate-100">
           <img
             src={`${baseUrl}images/20397a70-3e6a-4a70-a2cd-e6ad51a59c6e.png`}
@@ -66,6 +74,7 @@ export default function StudentLoginPage() {
             </button>
           </form>
         </div>
+      </div>
       </div>
     </section>
   )
