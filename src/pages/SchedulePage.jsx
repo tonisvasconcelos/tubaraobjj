@@ -524,7 +524,7 @@ export default function SchedulePage() {
                                         <img
                                           src={row.team_member_photo_url}
                                           alt={row.team_member_name}
-                                          className={`w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white shadow-lg border ${
+                                          className={`w-[5.5rem] h-[5.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white shadow-lg border ${
                                             isFemaleOnly
                                               ? 'border-pink-300 ring-pink-100'
                                               : 'border-slate-200/80'
@@ -533,7 +533,7 @@ export default function SchedulePage() {
                                         />
                                       ) : (
                                         <div
-                                          className={`w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-tight shadow-lg ring-4 ring-white border ${
+                                          className={`w-[5.5rem] h-[5.5rem] sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-tight shadow-lg ring-4 ring-white border ${
                                             isFemaleOnly
                                               ? 'from-pink-600 to-pink-800 border-pink-400 ring-pink-100'
                                               : 'from-slate-700 to-slate-900 border-slate-600/30'
