@@ -67,12 +67,14 @@ export default function SchedulePage() {
       />
     <section className="pt-16 md:pt-20 py-12 sm:py-16 lg:py-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl">
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-4">
-          {t('schedule.title')}
-        </h1>
-        <p className="text-center text-slate-600 mb-10 sm:mb-12 text-sm sm:text-base">
-          {t('schedule.subtitle')}
-        </p>
+        <div className="mb-8 sm:mb-10 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md px-5 py-6 sm:px-8 sm:py-8 shadow-md shadow-slate-900/10">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center text-slate-900 mb-3 sm:mb-4">
+            {t('schedule.title')}
+          </h1>
+          <p className="text-center text-slate-600 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
+            {t('schedule.subtitle')}
+          </p>
+        </div>
 
         {loading ? (
           <p className="text-center text-slate-600">{t('schedule.loading')}</p>
