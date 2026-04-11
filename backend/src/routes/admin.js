@@ -58,6 +58,25 @@ function normalizeEmail(value, { required = false } = {}) {
   return normalized.slice(0, 255)
 }
 
+function normalizeInstagramHandle(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  let handle = raw
+  if (handle.startsWith('http://') || handle.startsWith('https://')) {
+    try {
+      const parsed = new URL(handle)
+      const parts = parsed.pathname.split('/').filter(Boolean)
+      handle = parts[0] || ''
+    } catch {
+      /* keep raw as fallback */
+    }
+  }
+  handle = handle.replace(/^@+/, '').trim().toLowerCase()
+  handle = handle.replace(/[^a-z0-9._]/g, '')
+  if (!handle) return null
+  return handle.slice(0, 255)
+}
+
 const SCHEDULE_TARGET_PUBLIC = new Set(['unisex', 'female_only'])
 
 function normalizeTargetPublic(value) {
@@ -90,17 +109,17 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 router.get('/academy-settings', async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, business_name, main_contact_email
+      `SELECT id, business_name, main_contact_email, logo_url
        FROM academy_settings
        ORDER BY id ASC
        LIMIT 1`
     )
     if (result.rows.length > 0) return res.json(result.rows[0])
     const inserted = await pool.query(
-      `INSERT INTO academy_settings (business_name, main_contact_email)
-       VALUES ($1, $2)
-       RETURNING id, business_name, main_contact_email`,
-      ['GFTeam Tubarão', null]
+      `INSERT INTO academy_settings (business_name, main_contact_email, logo_url)
+       VALUES ($1, $2, $3)
+       RETURNING id, business_name, main_contact_email, logo_url`,
+      ['GFTeam Tubarão', null, null]
     )
     res.json(inserted.rows[0])
   } catch (e) {
@@ -113,20 +132,22 @@ router.put('/academy-settings', async (req, res) => {
   try {
     const businessName = String(req.body?.business_name || '').trim().slice(0, 255) || null
     let mainContactEmail
+    const logoUrl = req.body?.logo_url ? String(req.body.logo_url).trim().slice(0, 1024) : null
     try {
       mainContactEmail = normalizeEmail(req.body?.main_contact_email)
     } catch (error) {
       return res.status(400).json({ error: error.message || 'E-mail inválido' })
     }
     const upsert = await pool.query(
-      `INSERT INTO academy_settings (id, business_name, main_contact_email)
-       VALUES (1, $1, $2)
+      `INSERT INTO academy_settings (id, business_name, main_contact_email, logo_url)
+       VALUES (1, $1, $2, $3)
        ON CONFLICT (id)
        DO UPDATE SET business_name = EXCLUDED.business_name,
                      main_contact_email = EXCLUDED.main_contact_email,
+                     logo_url = EXCLUDED.logo_url,
                      updated_at = NOW()
-       RETURNING id, business_name, main_contact_email`,
-      [businessName, mainContactEmail]
+       RETURNING id, business_name, main_contact_email, logo_url`,
+      [businessName, mainContactEmail, logoUrl]
     )
     res.json(upsert.rows[0])
   } catch (e) {
@@ -381,7 +402,7 @@ router.get('/branches', async (req, res) => {
 
 router.post('/branches', async (req, res) => {
   try {
-    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
+    const { name, address, instagram_handle, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
     let lat = null
     let lng = null
     try {
@@ -392,10 +413,11 @@ router.post('/branches', async (req, res) => {
     }
     const hp = Boolean(has_parking)
     const pa = hp && parking_address ? String(parking_address).trim() : null
+    const instagramHandle = normalizeInstagramHandle(instagram_handle)
     const r = await pool.query(
-      `INSERT INTO branches (name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-      [name || '', address || '', photo_url || null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng]
+      `INSERT INTO branches (name, address, instagram_handle, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      [name || '', address || '', instagramHandle, photo_url || null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng]
     )
     res.status(201).json(r.rows[0])
   } catch (e) {
@@ -407,7 +429,7 @@ router.post('/branches', async (req, res) => {
 router.put('/branches/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
-    const { name, address, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
+    const { name, address, instagram_handle, photo_url, sort_order, is_published, has_parking, parking_address, latitude, longitude } = req.body || {}
     let lat = null
     let lng = null
     try {
@@ -418,10 +440,11 @@ router.put('/branches/:id', async (req, res) => {
     }
     const hp = Boolean(has_parking)
     const pa = hp && parking_address ? String(parking_address).trim() : null
+    const instagramHandle = normalizeInstagramHandle(instagram_handle)
     const r = await pool.query(
-      `UPDATE branches SET name = $1, address = $2, photo_url = $3, sort_order = $4, is_published = $5,
-       has_parking = $6, parking_address = $7, latitude = $8, longitude = $9, updated_at = NOW() WHERE id = $10 RETURNING *`,
-      [name ?? '', address ?? '', photo_url ?? null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng, id]
+      `UPDATE branches SET name = $1, address = $2, instagram_handle = $3, photo_url = $4, sort_order = $5, is_published = $6,
+       has_parking = $7, parking_address = $8, latitude = $9, longitude = $10, updated_at = NOW() WHERE id = $11 RETURNING *`,
+      [name ?? '', address ?? '', instagramHandle, photo_url ?? null, sort_order ?? 0, is_published !== false, hp, pa, lat, lng, id]
     )
     if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
     res.json(r.rows[0])

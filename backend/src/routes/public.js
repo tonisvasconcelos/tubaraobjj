@@ -69,9 +69,18 @@ router.get('/schedules', async (req, res) => {
   try {
     const r = await pool.query(
       `SELECT ts.id, ts.branch_name, ts.training_type, ts.day_of_week, ts.start_time, ts.end_time, ts.notes, ts.sort_order,
-              ts.target_public, ts.team_member_id, tm.name AS team_member_name, tm.role AS team_member_role, tm.photo_url AS team_member_photo_url
+              ts.target_public, ts.team_member_id, tm.name AS team_member_name, tm.role AS team_member_role, tm.photo_url AS team_member_photo_url,
+              b.instagram_handle,
+              aset.logo_url AS academy_logo_url
        FROM training_schedules ts
        LEFT JOIN team_members tm ON tm.id = ts.team_member_id
+       LEFT JOIN branches b ON LOWER(TRIM(b.name)) = LOWER(TRIM(ts.branch_name))
+       LEFT JOIN LATERAL (
+         SELECT logo_url
+         FROM academy_settings
+         ORDER BY id ASC
+         LIMIT 1
+       ) aset ON true
        WHERE ts.is_published = true
        ORDER BY ts.branch_name ASC, ts.day_of_week ASC, ts.start_time ASC, ts.sort_order ASC, ts.id ASC`
     )

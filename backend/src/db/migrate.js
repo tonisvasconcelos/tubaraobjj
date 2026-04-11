@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS branches (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   address TEXT NOT NULL,
+  instagram_handle VARCHAR(255),
   photo_url VARCHAR(1024),
   sort_order INT DEFAULT 0,
   is_published BOOLEAN DEFAULT true,
@@ -40,6 +41,7 @@ CREATE TABLE IF NOT EXISTS academy_settings (
   id SERIAL PRIMARY KEY,
   business_name VARCHAR(255),
   main_contact_email VARCHAR(255),
+  logo_url VARCHAR(1024),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -551,8 +553,8 @@ INSERT INTO website_terms (term_key, locale, title, content, version, is_active,
 SELECT 'terms', 'pt-BR', 'Termos de Uso', 'Defina aqui o conteúdo dos termos de uso no painel administrativo.', 1, true, NOW()
 WHERE NOT EXISTS (SELECT 1 FROM website_terms WHERE term_key = 'terms' AND locale = 'pt-BR' AND version = 1);
 
-INSERT INTO academy_settings (business_name, main_contact_email)
-SELECT 'GFTeam Tubarão', NULL
+INSERT INTO academy_settings (business_name, main_contact_email, logo_url)
+SELECT 'GFTeam Tubarão', NULL, NULL
 WHERE NOT EXISTS (SELECT 1 FROM academy_settings);
 
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
@@ -564,6 +566,8 @@ CREATE INDEX IF NOT EXISTS idx_trial_slots_starts_at ON trial_slots(starts_at);
 CREATE INDEX IF NOT EXISTS idx_training_schedules_team_member ON training_schedules(team_member_id);
 ALTER TABLE training_schedules ADD COLUMN IF NOT EXISTS target_public VARCHAR(24) NOT NULL DEFAULT 'unisex';
 ALTER TABLE team_members ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS instagram_handle VARCHAR(255);
+ALTER TABLE academy_settings ADD COLUMN IF NOT EXISTS logo_url VARCHAR(1024);
 ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS team_member_id INT REFERENCES team_members(id) ON DELETE SET NULL;
 ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS class_type VARCHAR(40) NOT NULL DEFAULT 'experimental_group';
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS requested_class_type VARCHAR(40);

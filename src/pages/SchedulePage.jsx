@@ -51,7 +51,10 @@ async function generateShareCardImage({
   dayLabel,
   timeRange,
   branchName,
+  instagramHandle,
   instructorName,
+  instructorPhotoUrl,
+  academyLogoUrl,
   callText,
 }) {
   const size = 1080
@@ -63,38 +66,103 @@ async function generateShareCardImage({
 
   const bg = ctx.createLinearGradient(0, 0, size, size)
   bg.addColorStop(0, '#0f172a')
-  bg.addColorStop(1, '#111827')
+  bg.addColorStop(0.45, '#1d4ed8')
+  bg.addColorStop(1, '#9333ea')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, size, size)
 
-  ctx.fillStyle = 'rgba(255,255,255,0.08)'
+  ctx.fillStyle = 'rgba(255,255,255,0.12)'
   ctx.fillRect(56, 56, size - 112, size - 112)
 
-  ctx.fillStyle = '#ffffff'
-  ctx.font = '700 52px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
-  ctx.fillText('GFTeam Tubarão', 96, 150)
+  ctx.fillStyle = 'rgba(15,23,42,0.55)'
+  ctx.fillRect(86, 86, size - 172, size - 172)
 
-  ctx.fillStyle = '#cbd5e1'
+  const brandTopY = 140
+  if (academyLogoUrl) {
+    try {
+      const logo = await new Promise((resolve, reject) => {
+        const image = new Image()
+        image.crossOrigin = 'anonymous'
+        image.onload = () => resolve(image)
+        image.onerror = reject
+        image.src = academyLogoUrl
+      })
+      const logoHeight = 92
+      const logoWidth = Math.min((logo.width / logo.height) * logoHeight, 360)
+      ctx.drawImage(logo, 96, brandTopY - 72, logoWidth, logoHeight)
+    } catch {
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '700 52px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+      ctx.fillText('GFTeam Tubarão', 96, brandTopY)
+    }
+  } else {
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '700 52px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+    ctx.fillText('GFTeam Tubarão', 96, brandTopY)
+  }
+
+  ctx.fillStyle = '#e2e8f0'
   ctx.font = '500 34px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
   ctx.fillText(branchName || 'Unidade', 96, 220)
 
+  if (instagramHandle) {
+    const displayHandle = instagramHandle.startsWith('@') ? instagramHandle : `@${instagramHandle}`
+    ctx.fillStyle = 'rgba(236, 72, 153, 0.18)'
+    ctx.fillRect(size - 390, 108, 280, 58)
+    ctx.fillStyle = '#fbcfe8'
+    ctx.font = '700 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+    ctx.fillText(displayHandle, size - 366, 146)
+  }
+
   ctx.fillStyle = '#ffffff'
   ctx.font = '800 66px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
-  let cursorY = drawWrappedText(ctx, trainingType, 96, 340, size - 192, 78)
+  let cursorY = drawWrappedText(ctx, trainingType, 96, 320, size - 192, 76)
 
-  ctx.fillStyle = '#e2e8f0'
+  ctx.fillStyle = '#dbeafe'
   ctx.font = '600 42px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
   cursorY = drawWrappedText(ctx, `${dayLabel} • ${timeRange}`, 96, cursorY + 24, size - 192, 52)
+
+  if (instructorPhotoUrl) {
+    try {
+      const photo = await new Promise((resolve, reject) => {
+        const image = new Image()
+        image.crossOrigin = 'anonymous'
+        image.onload = () => resolve(image)
+        image.onerror = reject
+        image.src = instructorPhotoUrl
+      })
+      const avatarSize = 120
+      const avatarX = 96
+      const avatarY = cursorY + 12
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2)
+      ctx.closePath()
+      ctx.clip()
+      ctx.drawImage(photo, avatarX, avatarY, avatarSize, avatarSize)
+      ctx.restore()
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)'
+      ctx.lineWidth = 5
+      ctx.beginPath()
+      ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2)
+      ctx.stroke()
+    } catch {
+      // ignore photo draw failure
+    }
+  }
 
   if (instructorName) {
     ctx.fillStyle = '#f8fafc'
     ctx.font = '500 34px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
-    cursorY = drawWrappedText(ctx, `Prof(a). ${instructorName}`, 96, cursorY + 24, size - 192, 44)
+    const instructorX = instructorPhotoUrl ? 236 : 96
+    cursorY = drawWrappedText(ctx, `Prof(a). ${instructorName}`, instructorX, cursorY + 62, size - 280, 44)
   }
 
-  ctx.fillStyle = '#f1f5f9'
-  ctx.font = '700 42px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
-  drawWrappedText(ctx, callText, 96, size - 190, size - 192, 50)
+  ctx.fillStyle = 'rgba(255,255,255,0.14)'
+  ctx.fillRect(96, size - 250, size - 192, 130)
+  ctx.fillStyle = '#f8fafc'
+  ctx.font = '700 40px system-ui, -apple-system, Segoe UI, Roboto, sans-serif'
+  drawWrappedText(ctx, callText, 120, size - 198, size - 240, 48)
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -242,17 +310,25 @@ export default function SchedulePage() {
     try {
       const dayLabel = t(`schedule.day.${day}`)
       const timeRange = `${formatTime(row.start_time)} – ${formatTime(row.end_time)}`
+      const instagramHandle = String(row.instagram_handle || '')
+        .trim()
+        .replace(/^@+/, '')
+        .toLowerCase()
       const blob = await generateShareCardImage({
         trainingType: row.training_type,
         dayLabel,
         timeRange,
         branchName: branch === '__default__' ? t('schedule.unknownBranch') : branch,
+        instagramHandle,
         instructorName: row.team_member_name || '',
+        instructorPhotoUrl: row.team_member_photo_url || '',
+        academyLogoUrl: row.academy_logo_url || '',
         callText: t('schedule.share.call'),
       })
 
       const file = new File([blob], 'agenda-gfteam-tubarao.png', { type: 'image/png' })
-      const shareText = `${row.training_type} • ${dayLabel} ${timeRange} • ${window.location.origin}/horarios`
+      const mentionText = instagramHandle ? ` @${instagramHandle}` : ''
+      const shareText = `${row.training_type} • ${dayLabel} ${timeRange}${mentionText} • ${window.location.origin}/horarios`
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({

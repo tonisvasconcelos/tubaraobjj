@@ -9,6 +9,7 @@ export default function BranchesManage() {
   const [form, setForm] = useState({
     name: '',
     address: '',
+    instagram_handle: '',
     photo_url: '',
     latitude: '',
     longitude: '',
@@ -40,6 +41,7 @@ export default function BranchesManage() {
     setForm({
       name: '',
       address: '',
+      instagram_handle: '',
       photo_url: '',
       latitude: '',
       longitude: '',
@@ -55,6 +57,7 @@ export default function BranchesManage() {
     setForm({
       name: row.name || '',
       address: row.address || '',
+      instagram_handle: row.instagram_handle || '',
       photo_url: row.photo_url || '',
       latitude: row.latitude == null ? '' : String(row.latitude),
       longitude: row.longitude == null ? '' : String(row.longitude),
@@ -127,6 +130,13 @@ export default function BranchesManage() {
               onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg"
               rows={3}
+            />
+            <input
+              type="text"
+              placeholder="Instagram da unidade (ex: @gfteam_tijuca)"
+              value={form.instagram_handle}
+              onChange={(e) => setForm((f) => ({ ...f, instagram_handle: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
@@ -220,6 +230,9 @@ export default function BranchesManage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900">{row.name}</p>
                     <p className="text-sm text-slate-500">{row.address}</p>
+                    {row.instagram_handle ? (
+                      <p className="text-xs text-slate-500">@{String(row.instagram_handle).replace(/^@+/, '')}</p>
+                    ) : null}
                   </div>
                   <button type="button" onClick={() => openEdit(row)} className="p-2 text-slate-600 hover:text-slate-900">
                     <Pencil className="w-4 h-4" />
