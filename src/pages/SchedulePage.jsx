@@ -18,10 +18,18 @@ function initialsFromName(name) {
 
 const DAYS = [0, 1, 2, 3, 4, 5, 6]
 
+function branchKey(row) {
+  const raw = (row.branch_name || '').trim()
+  return raw || '__default__'
+}
+
 export default function SchedulePage() {
   const { t } = useLanguage()
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filterUnit, setFilterUnit] = useState('all')
+  const [filterTeacher, setFilterTeacher] = useState('all')
+  const [filterTarget, setFilterTarget] = useState('all')
 
   useEffect(() => {
     getSchedules()
@@ -30,11 +38,64 @@ export default function SchedulePage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const unitOptions = useMemo(() => {
+    const keys = new Set()
+    for (const r of rows) keys.add(branchKey(r))
+    return [...keys].sort((a, b) => a.localeCompare(b))
+  }, [rows])
+
+  const { teacherOptions, hasNoInstructorOption } = useMemo(() => {
+    const byId = new Map()
+    let unassigned = false
+    for (const r of rows) {
+      const id = r.team_member_id
+      if (id == null || id === '') {
+        unassigned = true
+      } else {
+        const n = Number(id)
+        if (!byId.has(n)) {
+          byId.set(n, String(r.team_member_name || '').trim() || `#${n}`)
+        }
+      }
+    }
+    const teacherOptions = [...byId.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1], undefined, { sensitivity: 'base' }))
+      .map(([id, name]) => ({ id, name }))
+    return { teacherOptions, hasNoInstructorOption: unassigned }
+  }, [rows])
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      if (filterUnit !== 'all' && branchKey(r) !== filterUnit) return false
+      if (filterTeacher !== 'all') {
+        if (filterTeacher === 'none') {
+          if (r.team_member_id != null && r.team_member_id !== '') return false
+        } else if (String(r.team_member_id) !== String(filterTeacher)) {
+          return false
+        }
+      }
+      if (filterTarget !== 'all') {
+        const isFemaleOnly = r.target_public === 'female_only'
+        if (filterTarget === 'female_only' && !isFemaleOnly) return false
+        if (filterTarget === 'unisex' && isFemaleOnly) return false
+      }
+      return true
+    })
+  }, [rows, filterUnit, filterTeacher, filterTarget])
+
+  const hasActiveFilters =
+    filterUnit !== 'all' || filterTeacher !== 'all' || filterTarget !== 'all'
+
+  function clearFilters() {
+    setFilterUnit('all')
+    setFilterTeacher('all')
+    setFilterTarget('all')
+  }
+
   const byBranch = useMemo(() => {
     const m = {}
-    for (const r of rows) {
-      const raw = (r.branch_name || '').trim()
-      const b = raw || '__default__'
+    for (const r of filteredRows) {
+      const b = branchKey(r)
       if (!m[b]) m[b] = {}
       const d = Number(r.day_of_week)
       if (!m[b][d]) m[b][d] = []
@@ -48,7 +109,7 @@ export default function SchedulePage() {
       }
     }
     return m
-  }, [rows])
+  }, [filteredRows])
 
   const branchNames = useMemo(
     () => Object.keys(byBranch).sort((a, b) => a.localeCompare(b)),
@@ -81,6 +142,80 @@ export default function SchedulePage() {
         ) : rows.length === 0 ? (
           <p className="text-center text-slate-600 max-w-xl mx-auto">{t('schedule.empty')}</p>
         ) : (
+          <>
+            <div className="mb-8 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md px-4 py-4 sm:px-6 shadow-md shadow-slate-900/10">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+                <div>
+                  <label htmlFor="schedule-filter-unit" className="mb-1 block text-xs font-medium text-slate-600">
+                    {t('schedule.filter.unit')}
+                  </label>
+                  <select
+                    id="schedule-filter-unit"
+                    value={filterUnit}
+                    onChange={(e) => setFilterUnit(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+                  >
+                    <option value="all">{t('schedule.filter.all')}</option>
+                    {unitOptions.map((key) => (
+                      <option key={key} value={key}>
+                        {key === '__default__' ? t('schedule.unknownBranch') : key}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="schedule-filter-teacher" className="mb-1 block text-xs font-medium text-slate-600">
+                    {t('schedule.filter.teacher')}
+                  </label>
+                  <select
+                    id="schedule-filter-teacher"
+                    value={filterTeacher}
+                    onChange={(e) => setFilterTeacher(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+                  >
+                    <option value="all">{t('schedule.filter.all')}</option>
+                    {hasNoInstructorOption ? (
+                      <option value="none">{t('schedule.filter.noInstructor')}</option>
+                    ) : null}
+                    {teacherOptions.map((opt) => (
+                      <option key={opt.id} value={String(opt.id)}>
+                        {opt.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="schedule-filter-target" className="mb-1 block text-xs font-medium text-slate-600">
+                    {t('schedule.filter.target')}
+                  </label>
+                  <select
+                    id="schedule-filter-target"
+                    value={filterTarget}
+                    onChange={(e) => setFilterTarget(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900"
+                  >
+                    <option value="all">{t('schedule.filter.all')}</option>
+                    <option value="unisex">{t('schedule.filter.unisex')}</option>
+                    <option value="female_only">{t('schedule.filter.femaleOnlyOption')}</option>
+                  </select>
+                </div>
+              </div>
+              {hasActiveFilters ? (
+                <div className="mt-3 flex justify-end border-t border-slate-200/80 pt-3">
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="text-sm font-medium text-slate-700 underline decoration-slate-400 underline-offset-2 hover:text-slate-900"
+                  >
+                    {t('schedule.filter.clear')}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {filteredRows.length === 0 ? (
+              <p className="text-center text-slate-600 max-w-xl mx-auto">{t('schedule.emptyFiltered')}</p>
+            ) : (
           <div className="space-y-10 sm:space-y-12">
             {branchNames.map((branch) => (
               <div
@@ -192,6 +327,8 @@ export default function SchedulePage() {
               </div>
             ))}
           </div>
+            )}
+          </>
         )}
       </div>
     </section>
