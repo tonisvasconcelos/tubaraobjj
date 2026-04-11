@@ -231,48 +231,16 @@ export default function TrialBookingsManage() {
     }
     setSaving(true)
     try {
-      const result = await admin.trial.createSlotsBulk({
-        branch_id: Number(recurringForm.branch_id),
-        team_member_id:
-          recurringForm.team_member_id === '' ? null : Number(recurringForm.team_member_id),
-        class_type: recurringForm.class_type || 'experimental_group',
-        title: recurringForm.title || null,
-        capacity: Math.max(Number(recurringForm.capacity) || 1, 1),
-        is_published: recurringForm.is_published,
-        is_cancelled: recurringForm.is_cancelled,
-        range_start: recurringForm.range_start,
-        range_end: recurringForm.range_end,
-        weekdays: recurringForm.weekdays,
-        start_time: recurringForm.start_time,
-        end_time: recurringForm.end_time,
-      })
-      alert(
-        `Série criada: ${result.created} horário(s).` +
-          (result.skipped ? ` Ignorados (já existentes): ${result.skipped}.` : '')
-      )
+      const payloads = buildRecurringFallbackPayloads(recurringForm)
+      let created = 0
+      for (const payload of payloads) {
+        await admin.trial.createSlot(payload)
+        created += 1
+      }
+      alert(`Série criada: ${created} horário(s).`)
       setRecurringForm(emptyRecurringForm)
       await load()
     } catch (error) {
-      if (error?.status === 404) {
-        try {
-          const payloads = buildRecurringFallbackPayloads(recurringForm)
-          let created = 0
-          for (const payload of payloads) {
-            await admin.trial.createSlot(payload)
-            created += 1
-          }
-          alert(`Série criada: ${created} horário(s).`)
-          setRecurringForm(emptyRecurringForm)
-          await load()
-          return
-        } catch (fallbackError) {
-          alert(
-            fallbackError.message ||
-              'Não foi possível criar a série no modo de compatibilidade. Verifique o backend.'
-          )
-          return
-        }
-      }
       alert(error.message || 'Erro ao criar série')
     } finally {
       setSaving(false)
