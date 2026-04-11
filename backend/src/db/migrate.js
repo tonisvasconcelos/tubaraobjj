@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS training_schedules (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE training_schedules
+  ADD COLUMN IF NOT EXISTS team_member_id INT REFERENCES team_members(id) ON DELETE SET NULL;
 
 -- Leads (trial class funnel)
 CREATE TABLE IF NOT EXISTS leads (
@@ -545,6 +547,7 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(customer_
 CREATE INDEX IF NOT EXISTS idx_leads_created_at ON leads(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_trial_slots_starts_at ON trial_slots(starts_at);
+CREATE INDEX IF NOT EXISTS idx_training_schedules_team_member ON training_schedules(team_member_id);
 ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS team_member_id INT REFERENCES team_members(id) ON DELETE SET NULL;
 ALTER TABLE trial_slots ADD COLUMN IF NOT EXISTS class_type VARCHAR(40) NOT NULL DEFAULT 'experimental_group';
 ALTER TABLE leads ADD COLUMN IF NOT EXISTS requested_class_type VARCHAR(40);

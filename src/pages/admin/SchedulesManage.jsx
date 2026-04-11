@@ -21,6 +21,7 @@ function formatTimeForInput(t) {
 const emptyForm = () => ({
   branch_name: '',
   training_type: '',
+  team_member_id: '',
   day_of_week: 1,
   start_time: '18:00',
   end_time: '19:30',
@@ -31,6 +32,7 @@ const emptyForm = () => ({
 
 export default function SchedulesManage() {
   const [list, setList] = useState([])
+  const [teamMembers, setTeamMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm)
@@ -39,11 +41,13 @@ export default function SchedulesManage() {
   const load = async () => {
     setLoading(true)
     try {
-      const data = await admin.schedules.list()
+      const [data, teamData] = await Promise.all([admin.schedules.list(), admin.team.list()])
       setList(Array.isArray(data) ? data : [])
+      setTeamMembers(Array.isArray(teamData) ? teamData : [])
     } catch (e) {
       console.error(e)
       setList([])
+      setTeamMembers([])
     } finally {
       setLoading(false)
     }
@@ -63,6 +67,7 @@ export default function SchedulesManage() {
     setForm({
       branch_name: row.branch_name || '',
       training_type: row.training_type || '',
+      team_member_id: row.team_member_id != null ? String(row.team_member_id) : '',
       day_of_week: Number(row.day_of_week) || 0,
       start_time: formatTimeForInput(row.start_time),
       end_time: formatTimeForInput(row.end_time),
@@ -78,6 +83,7 @@ export default function SchedulesManage() {
       const payload = {
         branch_name: form.branch_name,
         training_type: form.training_type,
+        team_member_id: form.team_member_id === '' ? null : Number(form.team_member_id),
         day_of_week: Number(form.day_of_week),
         start_time: form.start_time || '00:00',
         end_time: form.end_time || '00:00',
@@ -135,6 +141,22 @@ export default function SchedulesManage() {
               onChange={(e) => setForm((f) => ({ ...f, training_type: e.target.value }))}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg"
             />
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Professor responsável</label>
+              <select
+                value={form.team_member_id}
+                onChange={(e) => setForm((f) => ({ ...f, team_member_id: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                <option value="">Sem professor definido</option>
+                {teamMembers.map((member) => (
+                  <option key={member.id} value={member.id}>
+                    {member.name}
+                    {member.role ? ` — ${member.role}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div>
               <label className="block text-sm text-slate-600 mb-1">Dia da semana</label>
               <select
@@ -229,6 +251,12 @@ export default function SchedulesManage() {
                         </span>
                       </p>
                       <p className="text-sm text-slate-600">{row.training_type}</p>
+                      {row.team_member_name ? (
+                        <p className="text-xs text-slate-500">
+                          Prof. {row.team_member_name}
+                          {row.team_member_role ? ` — ${row.team_member_role}` : ''}
+                        </p>
+                      ) : null}
                       {!row.is_published && (
                         <span className="inline-block mt-1 text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded">
                           Rascunho

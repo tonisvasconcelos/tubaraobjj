@@ -123,6 +123,30 @@ export const translations = {
     'trial.preferFemaleInstructorRequired':
       'Informe se tem preferência por professora/instrutora feminina.',
     'trial.medicalTitle': 'Questionário médico (obrigatório)',
+    'trial.medicalDescription':
+      'Questionário médico inicial para agendamento de aula experimental.',
+    'trial.medical.question.question_1':
+      'Algum médico já disse que você possui problema de coração e que só deve realizar atividade física supervisionada?',
+    'trial.medical.question.question_2':
+      'Você sente dor no peito quando pratica atividade física?',
+    'trial.medical.question.question_3':
+      'Você sentiu dor no peito no último mês sem estar praticando atividade física?',
+    'trial.medical.question.question_4':
+      'Você perde o equilíbrio por tontura ou já perdeu a consciência?',
+    'trial.medical.question.question_5':
+      'Você possui problema ósseo ou articular que pode piorar com atividade física?',
+    'trial.medical.question.question_6':
+      'Seu médico prescreveu medicamentos para pressão arterial ou problema cardíaco?',
+    'trial.medical.question.question_7':
+      'Você conhece outro motivo que impeça a prática de atividade física?',
+    'trial.medical.question.question_8':
+      'Você possui histórico de convulsão, desmaio ou crise epiléptica?',
+    'trial.medical.question.question_9':
+      'Você possui alguma alergia grave ou condição respiratória importante?',
+    'trial.medical.question.question_10':
+      'Nos últimos 12 meses você realizou cirurgia, internação ou tratamento médico relevante?',
+    'trial.medical.question.additional_info':
+      'Se respondeu SIM em alguma pergunta, descreva brevemente (opcional).',
     'trial.medicalRequired':
       'Responda todas as perguntas obrigatórias do questionário médico para continuar.',
     'trial.termsAgreement':
@@ -170,6 +194,7 @@ export const translations = {
     'schedule.loading': 'Carregando...',
     'schedule.empty': 'Horários em breve. Volte em breve ou fale conosco pelo WhatsApp.',
     'schedule.unknownBranch': 'Unidade',
+    'schedule.instructorPrefix': 'Prof.',
     'schedule.day.0': 'Domingo',
     'schedule.day.1': 'Segunda-feira',
     'schedule.day.2': 'Terça-feira',
@@ -327,6 +352,30 @@ export const translations = {
     'trial.preferFemaleInstructorRequired':
       'Please indicate if you prefer a female instructor.',
     'trial.medicalTitle': 'Medical questionnaire (required)',
+    'trial.medicalDescription':
+      'Initial medical questionnaire required for trial class booking.',
+    'trial.medical.question.question_1':
+      'Has a doctor ever said you have a heart condition and that you should only do physical activity under supervision?',
+    'trial.medical.question.question_2':
+      'Do you feel chest pain during physical activity?',
+    'trial.medical.question.question_3':
+      'Have you felt chest pain in the last month when not doing physical activity?',
+    'trial.medical.question.question_4':
+      'Do you lose balance due to dizziness or have you ever lost consciousness?',
+    'trial.medical.question.question_5':
+      'Do you have any bone or joint problem that may worsen with physical activity?',
+    'trial.medical.question.question_6':
+      'Has your doctor prescribed medication for blood pressure or a heart condition?',
+    'trial.medical.question.question_7':
+      'Do you know of any other reason that would prevent you from doing physical activity?',
+    'trial.medical.question.question_8':
+      'Do you have a history of seizures, fainting, or epileptic episodes?',
+    'trial.medical.question.question_9':
+      'Do you have any severe allergy or significant respiratory condition?',
+    'trial.medical.question.question_10':
+      'In the last 12 months, have you had surgery, hospitalization, or relevant medical treatment?',
+    'trial.medical.question.additional_info':
+      'If you answered YES to any question, briefly describe it (optional).',
     'trial.medicalRequired':
       'Please complete all required medical questionnaire fields before submitting.',
     'trial.termsAgreement':
@@ -373,6 +422,7 @@ export const translations = {
     'schedule.loading': 'Loading...',
     'schedule.empty': 'Schedule coming soon. Check back or contact us on WhatsApp.',
     'schedule.unknownBranch': 'Location',
+    'schedule.instructorPrefix': 'Coach',
     'schedule.day.0': 'Sunday',
     'schedule.day.1': 'Monday',
     'schedule.day.2': 'Tuesday',
@@ -532,6 +582,30 @@ export const translations = {
     'trial.preferFemaleInstructorRequired':
       'Indica si tienes preferencia por profesora/instructora femenina.',
     'trial.medicalTitle': 'Cuestionario médico (obligatorio)',
+    'trial.medicalDescription':
+      'Cuestionario médico inicial para agendar la clase de prueba.',
+    'trial.medical.question.question_1':
+      '¿Algún médico te ha dicho que tienes un problema cardíaco y que solo debes hacer actividad física con supervisión?',
+    'trial.medical.question.question_2':
+      '¿Sientes dolor en el pecho cuando realizas actividad física?',
+    'trial.medical.question.question_3':
+      '¿Sentiste dolor en el pecho en el último mes sin estar haciendo actividad física?',
+    'trial.medical.question.question_4':
+      '¿Pierdes el equilibrio por mareo o alguna vez perdiste el conocimiento?',
+    'trial.medical.question.question_5':
+      '¿Tienes algún problema óseo o articular que pueda empeorar con actividad física?',
+    'trial.medical.question.question_6':
+      '¿Tu médico te recetó medicamentos para la presión arterial o un problema cardíaco?',
+    'trial.medical.question.question_7':
+      '¿Conoces alguna otra razón que te impida realizar actividad física?',
+    'trial.medical.question.question_8':
+      '¿Tienes historial de convulsiones, desmayos o crisis epilépticas?',
+    'trial.medical.question.question_9':
+      '¿Tienes alguna alergia grave o condición respiratoria importante?',
+    'trial.medical.question.question_10':
+      '¿En los últimos 12 meses tuviste cirugía, hospitalización o tratamiento médico relevante?',
+    'trial.medical.question.additional_info':
+      'Si respondiste SÍ a alguna pregunta, descríbelo brevemente (opcional).',
     'trial.medicalRequired':
       'Responde todas las preguntas obligatorias del cuestionario médico para continuar.',
     'trial.termsAgreement':
@@ -579,6 +653,7 @@ export const translations = {
     'schedule.loading': 'Cargando...',
     'schedule.empty': 'Horarios próximamente. Vuelve pronto o escríbenos por WhatsApp.',
     'schedule.unknownBranch': 'Sede',
+    'schedule.instructorPrefix': 'Prof.',
     'schedule.day.0': 'Domingo',
     'schedule.day.1': 'Lunes',
     'schedule.day.2': 'Martes',

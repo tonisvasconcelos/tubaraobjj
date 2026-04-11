@@ -40,6 +40,12 @@ function parseCoordinate(value, { min, max, label }) {
   return Number(num.toFixed(6))
 }
 
+function parseOptionalId(value) {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : NaN
+}
+
 // ----- Upload (single image) -----
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
@@ -61,7 +67,10 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 router.get('/schedules', async (req, res) => {
   try {
     const r = await pool.query(
-      'SELECT * FROM training_schedules ORDER BY branch_name ASC, day_of_week ASC, start_time ASC, sort_order ASC, id ASC'
+      `SELECT ts.*, tm.name AS team_member_name, tm.role AS team_member_role, tm.photo_url AS team_member_photo_url
+       FROM training_schedules ts
+       LEFT JOIN team_members tm ON tm.id = ts.team_member_id
+       ORDER BY ts.branch_name ASC, ts.day_of_week ASC, ts.start_time ASC, ts.sort_order ASC, ts.id ASC`
     )
     res.json(r.rows)
   } catch (e) {
@@ -72,15 +81,35 @@ router.get('/schedules', async (req, res) => {
 
 router.post('/schedules', async (req, res) => {
   try {
-    const { branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published } =
+    const {
+      branch_name,
+      training_type,
+      day_of_week,
+      start_time,
+      end_time,
+      notes,
+      sort_order,
+      is_published,
+      team_member_id,
+    } =
       req.body || {}
     const day = parseInt(day_of_week, 10)
     if (Number.isNaN(day) || day < 0 || day > 6) {
       return res.status(400).json({ error: 'day_of_week deve ser 0 (domingo) a 6 (sábado)' })
     }
+    const teamMemberId = parseOptionalId(team_member_id)
+    if (Number.isNaN(teamMemberId)) {
+      return res.status(400).json({ error: 'team_member_id inválido' })
+    }
+    if (teamMemberId != null) {
+      const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [teamMemberId])
+      if (tm.rows.length === 0) {
+        return res.status(400).json({ error: 'Professor responsável não encontrado' })
+      }
+    }
     const r = await pool.query(
-      `INSERT INTO training_schedules (branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published)
-       VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8) RETURNING *`,
+      `INSERT INTO training_schedules (branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published, team_member_id)
+       VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8, $9) RETURNING *`,
       [
         branch_name || '',
         training_type || '',
@@ -90,6 +119,7 @@ router.post('/schedules', async (req, res) => {
         notes || null,
         sort_order ?? 0,
         is_published !== false,
+        teamMemberId,
       ]
     )
     res.status(201).json(r.rows[0])
@@ -102,16 +132,37 @@ router.post('/schedules', async (req, res) => {
 router.put('/schedules/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
-    const { branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published } =
+    const {
+      branch_name,
+      training_type,
+      day_of_week,
+      start_time,
+      end_time,
+      notes,
+      sort_order,
+      is_published,
+      team_member_id,
+    } =
       req.body || {}
     const day = parseInt(day_of_week, 10)
     if (Number.isNaN(day) || day < 0 || day > 6) {
       return res.status(400).json({ error: 'day_of_week deve ser 0 (domingo) a 6 (sábado)' })
     }
+    const teamMemberId = parseOptionalId(team_member_id)
+    if (Number.isNaN(teamMemberId)) {
+      return res.status(400).json({ error: 'team_member_id inválido' })
+    }
+    if (teamMemberId != null) {
+      const tm = await pool.query('SELECT id FROM team_members WHERE id = $1', [teamMemberId])
+      if (tm.rows.length === 0) {
+        return res.status(400).json({ error: 'Professor responsável não encontrado' })
+      }
+    }
     const r = await pool.query(
       `UPDATE training_schedules SET branch_name = $1, training_type = $2, day_of_week = $3,
-       start_time = $4::time, end_time = $5::time, notes = $6, sort_order = $7, is_published = $8, updated_at = NOW()
-       WHERE id = $9 RETURNING *`,
+       start_time = $4::time, end_time = $5::time, notes = $6, sort_order = $7, is_published = $8,
+       team_member_id = $9, updated_at = NOW()
+       WHERE id = $10 RETURNING *`,
       [
         branch_name ?? '',
         training_type ?? '',
@@ -121,6 +172,7 @@ router.put('/schedules/:id', async (req, res) => {
         notes ?? null,
         sort_order ?? 0,
         is_published !== false,
+        teamMemberId,
         id,
       ]
     )

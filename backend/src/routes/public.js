@@ -68,10 +68,12 @@ router.get('/highlights', async (req, res) => {
 router.get('/schedules', async (req, res) => {
   try {
     const r = await pool.query(
-      `SELECT id, branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order
-       FROM training_schedules
-       WHERE is_published = true
-       ORDER BY branch_name ASC, day_of_week ASC, start_time ASC, sort_order ASC, id ASC`
+      `SELECT ts.id, ts.branch_name, ts.training_type, ts.day_of_week, ts.start_time, ts.end_time, ts.notes, ts.sort_order,
+              ts.team_member_id, tm.name AS team_member_name, tm.role AS team_member_role, tm.photo_url AS team_member_photo_url
+       FROM training_schedules ts
+       LEFT JOIN team_members tm ON tm.id = ts.team_member_id
+       WHERE ts.is_published = true
+       ORDER BY ts.branch_name ASC, ts.day_of_week ASC, ts.start_time ASC, ts.sort_order ASC, ts.id ASC`
     )
     res.json(r.rows)
   } catch (e) {

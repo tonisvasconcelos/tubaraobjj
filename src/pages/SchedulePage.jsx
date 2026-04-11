@@ -97,6 +97,22 @@ export default function SchedulePage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-slate-800">{row.training_type}</p>
+                              {row.team_member_name ? (
+                                <div className="mt-2 flex items-center gap-2">
+                                  {row.team_member_photo_url ? (
+                                    <img
+                                      src={row.team_member_photo_url}
+                                      alt={row.team_member_name}
+                                      className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                                      loading="lazy"
+                                    />
+                                  ) : null}
+                                  <p className="text-sm text-slate-600">
+                                    {t('schedule.instructorPrefix')} {row.team_member_name}
+                                    {row.team_member_role ? ` — ${row.team_member_role}` : ''}
+                                  </p>
+                                </div>
+                              ) : null}
                               {row.notes ? (
                                 <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{row.notes}</p>
                               ) : null}

@@ -53,6 +53,18 @@ export default function TrialClassPage() {
   const [termsList, setTermsList] = useState([])
   const [termsAccepted, setTermsAccepted] = useState(false)
 
+  function resolveMedicalText(question, textType = 'label') {
+    if (!question?.question_key) return ''
+    const key =
+      textType === 'label'
+        ? `trial.medical.question.${question.question_key}`
+        : `trial.medical.option.${question.question_key}`
+    const translated = t(key)
+    if (translated && translated !== key) return translated
+    if (textType === 'label') return question.label || question.question_key
+    return ''
+  }
+
   const selectedBranch = useMemo(
     () => branches.find((b) => String(b.id) === String(selectedBranchId)),
     [branches, selectedBranchId]
@@ -741,11 +753,13 @@ export default function TrialClassPage() {
                   <h2 className="text-base font-semibold text-slate-900">
                     {t('trial.medicalTitle')}
                   </h2>
-                  <p className="text-sm text-slate-600">{medicalTemplate.description}</p>
+                  <p className="text-sm text-slate-600">
+                    {t('trial.medicalDescription')}
+                  </p>
                   {medicalQuestions.map((question) => (
                     <div key={question.id} className="space-y-2">
                       <p className="text-sm font-medium text-slate-800">
-                        {question.label}
+                        {resolveMedicalText(question, 'label')}
                         {question.is_required ? ' *' : ''}
                       </p>
                       {question.question_type === 'boolean' ? (
