@@ -32,9 +32,13 @@ function detectDeviceType() {
 function postEvent(payload) {
   const body = JSON.stringify(payload)
   if (navigator.sendBeacon) {
-    const blob = new Blob([body], { type: 'application/json' })
-    const ok = navigator.sendBeacon(INGEST_URL, blob)
-    if (ok) return
+    try {
+      const blob = new Blob([body], { type: 'application/json' })
+      const ok = navigator.sendBeacon(INGEST_URL, blob)
+      if (ok) return
+    } catch {
+      // Fallback to fetch when sendBeacon is blocked in prerender/headless contexts.
+    }
   }
   fetch(INGEST_URL, {
     method: 'POST',

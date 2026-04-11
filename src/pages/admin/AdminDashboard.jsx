@@ -15,6 +15,7 @@ import {
   Menu,
   X,
   BarChart3,
+  ShieldCheck,
 } from 'lucide-react'
 
 const navItems = [
@@ -25,6 +26,8 @@ const navItems = [
   { path: 'students', label: 'Alunos', icon: UserCircle2 },
   { path: 'plans', label: 'Planos', icon: ClipboardList },
   { path: 'trial', label: 'Aula Experimental', icon: Calendar },
+  { path: 'website-terms', label: 'Termos do Site', icon: ShieldCheck },
+  { path: 'medical-questionnaire', label: 'Questionário Médico', icon: ClipboardList },
   { path: 'analytics', label: 'Analytics', icon: BarChart3 },
   { path: 'invoices', label: 'Faturas', icon: ClipboardList },
   { path: 'student-messages', label: 'Mensagens Alunos', icon: MessageSquare },

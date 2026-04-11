@@ -200,6 +200,127 @@ export const admin = {
       return data
     },
   },
+  websiteTerms: {
+    list: async (params = {}) => {
+      const query = new URLSearchParams(params).toString()
+      const r = await authFetch(`/api/admin/website-terms${query ? `?${query}` : ''}`)
+      const data = await r.json().catch(() => [])
+      if (!r.ok) throw new Error(data.error || 'Erro ao listar termos do site')
+      return Array.isArray(data) ? data : []
+    },
+    create: async (body) => {
+      const r = await authFetch('/api/admin/website-terms', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar termo do site')
+      return data
+    },
+    update: async (id, body) => {
+      const r = await authFetch(`/api/admin/website-terms/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar termo do site')
+      return data
+    },
+    publish: async (id) => {
+      const r = await authFetch(`/api/admin/website-terms/${id}/publish`, { method: 'PATCH' })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao publicar termo do site')
+      return data
+    },
+    delete: async (id) => {
+      const r = await authFetch(`/api/admin/website-terms/${id}`, { method: 'DELETE' })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover termo do site')
+    },
+  },
+  medicalQuestionnaire: {
+    listTemplates: async () => {
+      const r = await authFetch('/api/admin/medical-questionnaire/templates')
+      const data = await r.json().catch(() => [])
+      if (!r.ok) throw new Error(data.error || 'Erro ao listar templates')
+      return Array.isArray(data) ? data : []
+    },
+    createTemplate: async (body) => {
+      const r = await authFetch('/api/admin/medical-questionnaire/templates', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar template')
+      return data
+    },
+    updateTemplate: async (id, body) => {
+      const r = await authFetch(`/api/admin/medical-questionnaire/templates/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar template')
+      return data
+    },
+    activateTemplate: async (id) => {
+      const r = await authFetch(`/api/admin/medical-questionnaire/templates/${id}/activate`, {
+        method: 'PATCH',
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao ativar template')
+      return data
+    },
+    deleteTemplate: async (id) => {
+      const r = await authFetch(`/api/admin/medical-questionnaire/templates/${id}`, {
+        method: 'DELETE',
+      })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover template')
+    },
+    listQuestions: async (templateId) => {
+      const r = await authFetch(
+        `/api/admin/medical-questionnaire/questions?template_id=${encodeURIComponent(templateId)}`
+      )
+      const data = await r.json().catch(() => [])
+      if (!r.ok) throw new Error(data.error || 'Erro ao listar perguntas')
+      return Array.isArray(data) ? data : []
+    },
+    createQuestion: async (body) => {
+      const r = await authFetch('/api/admin/medical-questionnaire/questions', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao criar pergunta')
+      return data
+    },
+    updateQuestion: async (id, body) => {
+      const r = await authFetch(`/api/admin/medical-questionnaire/questions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao atualizar pergunta')
+      return data
+    },
+    deleteQuestion: async (id) => {
+      const r = await authFetch(`/api/admin/medical-questionnaire/questions/${id}`, {
+        method: 'DELETE',
+      })
+      if (r.status === 204) return
+      const data = await r.json().catch(() => ({}))
+      throw new Error(data.error || 'Erro ao remover pergunta')
+    },
+    listSubmissions: async () => {
+      const r = await authFetch('/api/admin/medical-questionnaire/submissions')
+      const data = await r.json().catch(() => [])
+      if (!r.ok) throw new Error(data.error || 'Erro ao listar submissões')
+      return Array.isArray(data) ? data : []
+    },
+  },
   analytics: {
     overview: async (params = {}) => {
       const query = new URLSearchParams(params).toString()

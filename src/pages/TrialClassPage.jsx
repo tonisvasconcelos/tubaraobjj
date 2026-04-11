@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import Seo from '../components/seo/Seo'
 import {
+  getActiveLegalTerms,
+  getActiveMedicalQuestionnaire,
   createTrialPrivateRequest,
   createTrialReservation,
   getBranches,
+  getOrCreateVisitorId,
   getTrialSlots,
 } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
@@ -44,6 +47,11 @@ export default function TrialClassPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [directionsHint, setDirectionsHint] = useState('')
   const [directionsLoading, setDirectionsLoading] = useState(false)
+  const [medicalTemplate, setMedicalTemplate] = useState(null)
+  const [medicalQuestions, setMedicalQuestions] = useState([])
+  const [medicalAnswers, setMedicalAnswers] = useState({})
+  const [termsList, setTermsList] = useState([])
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const selectedBranch = useMemo(
     () => branches.find((b) => String(b.id) === String(selectedBranchId)),
@@ -72,6 +80,24 @@ export default function TrialClassPage() {
       .finally(() => {
         if (!cancelled) setLoadingBranches(false)
       })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadMedicalAndLegal() {
+      const [medicalData, legalData] = await Promise.all([
+        getActiveMedicalQuestionnaire(),
+        getActiveLegalTerms('pt-BR'),
+      ])
+      if (cancelled) return
+      setMedicalTemplate(medicalData?.template || null)
+      setMedicalQuestions(Array.isArray(medicalData?.questions) ? medicalData.questions : [])
+      setTermsList(Array.isArray(legalData) ? legalData : [])
+    }
+    loadMedicalAndLegal()
     return () => {
       cancelled = true
     }
@@ -197,6 +223,24 @@ export default function TrialClassPage() {
       if (form.gender === 'female' && !form.preferFemaleInstructor) {
         throw new Error(t('trial.preferFemaleInstructorRequired'))
       }
+      if (medicalTemplate) {
+        for (const question of medicalQuestions) {
+          if (!question.is_required) continue
+          const answer = medicalAnswers[question.question_key]
+          if (question.question_type === 'boolean' && typeof answer !== 'boolean') {
+            throw new Error(t('trial.medicalRequired'))
+          }
+          if (question.question_type === 'text' && !String(answer || '').trim()) {
+            throw new Error(t('trial.medicalRequired'))
+          }
+          if (question.question_type === 'single_choice' && !String(answer || '').trim()) {
+            throw new Error(t('trial.medicalRequired'))
+          }
+        }
+      }
+      if (!termsAccepted) {
+        throw new Error(t('trial.termsRequired'))
+      }
 
       const sharedPayload = {
         hasGi: form.hasGi === 'yes',
@@ -214,6 +258,40 @@ export default function TrialClassPage() {
         gender: form.gender,
         preferFemaleInstructor:
           form.gender === 'female' ? form.preferFemaleInstructor === 'yes' : null,
+        medicalQuestionnaire: medicalTemplate
+          ? {
+              templateId: medicalTemplate.id,
+              answers: medicalQuestions.map((question) => ({
+                questionId: question.id,
+                questionKey: question.question_key,
+                valueBoolean:
+                  question.question_type === 'boolean'
+                    ? Boolean(medicalAnswers[question.question_key])
+                    : undefined,
+                valueText:
+                  question.question_type === 'text'
+                    ? String(medicalAnswers[question.question_key] || '').trim()
+                    : undefined,
+                valueOption:
+                  question.question_type === 'single_choice'
+                    ? String(medicalAnswers[question.question_key] || '').trim()
+                    : undefined,
+              })),
+            }
+          : null,
+        legalAcceptance: {
+          accepted: termsAccepted,
+          visitorId: getOrCreateVisitorId(),
+          consentScope: 'trial_booking_submit',
+          locale: 'pt-BR',
+          path: '/aula-experimental',
+          terms: termsList.map((term) => ({
+            termId: term.id,
+            termKey: term.term_key,
+            version: term.version,
+            accepted: termsAccepted,
+          })),
+        },
       }
 
       if (selectedClassType === 'private_class') {
@@ -249,6 +327,8 @@ export default function TrialClassPage() {
       }
       setStatus('success')
       setForm(initialForm)
+      setMedicalAnswers({})
+      setTermsAccepted(false)
       setSelectedSlotId('')
       setPrivateDate('')
       setPrivateTime('')
@@ -655,6 +735,107 @@ export default function TrialClassPage() {
                 placeholder={t('trial.placeholder.notes')}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400"
               />
+
+              {medicalTemplate ? (
+                <div className="space-y-3 rounded-lg border border-slate-200 p-4 bg-slate-50/70">
+                  <h2 className="text-base font-semibold text-slate-900">
+                    {t('trial.medicalTitle')}
+                  </h2>
+                  <p className="text-sm text-slate-600">{medicalTemplate.description}</p>
+                  {medicalQuestions.map((question) => (
+                    <div key={question.id} className="space-y-2">
+                      <p className="text-sm font-medium text-slate-800">
+                        {question.label}
+                        {question.is_required ? ' *' : ''}
+                      </p>
+                      {question.question_type === 'boolean' ? (
+                        <div className="flex gap-3">
+                          <label className="inline-flex items-center gap-2 text-sm">
+                            <input
+                              type="radio"
+                              name={`mq-${question.question_key}`}
+                              checked={medicalAnswers[question.question_key] === true}
+                              onChange={() =>
+                                setMedicalAnswers((prev) => ({
+                                  ...prev,
+                                  [question.question_key]: true,
+                                }))
+                              }
+                            />
+                            {t('trial.yes')}
+                          </label>
+                          <label className="inline-flex items-center gap-2 text-sm">
+                            <input
+                              type="radio"
+                              name={`mq-${question.question_key}`}
+                              checked={medicalAnswers[question.question_key] === false}
+                              onChange={() =>
+                                setMedicalAnswers((prev) => ({
+                                  ...prev,
+                                  [question.question_key]: false,
+                                }))
+                              }
+                            />
+                            {t('trial.no')}
+                          </label>
+                        </div>
+                      ) : null}
+                      {question.question_type === 'text' ? (
+                        <textarea
+                          rows={3}
+                          value={medicalAnswers[question.question_key] || ''}
+                          onChange={(event) =>
+                            setMedicalAnswers((prev) => ({
+                              ...prev,
+                              [question.question_key]: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        />
+                      ) : null}
+                      {question.question_type === 'single_choice' ? (
+                        <select
+                          value={medicalAnswers[question.question_key] || ''}
+                          onChange={(event) =>
+                            setMedicalAnswers((prev) => ({
+                              ...prev,
+                              [question.question_key]: event.target.value,
+                            }))
+                          }
+                          className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        >
+                          <option value="">{t('trial.selectOption')}</option>
+                          {(Array.isArray(question.options_json) ? question.options_json : []).map(
+                            (option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            )
+                          )}
+                        </select>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <label className="flex items-start gap-2 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(event) => setTermsAccepted(event.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  {t('trial.termsAgreement')}
+                  {termsList.length > 0 ? (
+                    <>
+                      {' '}
+                      ({termsList.map((item) => item.title).join(' / ')})
+                    </>
+                  ) : null}
+                </span>
+              </label>
 
               {status === 'success' ? (
                 <p className="text-green-700 text-sm">

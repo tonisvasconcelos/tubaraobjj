@@ -395,6 +395,150 @@ CREATE TABLE IF NOT EXISTS analytics_sessions (
   user_id TEXT
 );
 
+-- Website legal terms registry (public site)
+CREATE TABLE IF NOT EXISTS website_terms (
+  id SERIAL PRIMARY KEY,
+  term_key VARCHAR(40) NOT NULL,
+  locale VARCHAR(10) NOT NULL DEFAULT 'pt-BR',
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  version INT NOT NULL DEFAULT 1,
+  is_active BOOLEAN NOT NULL DEFAULT false,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(term_key, locale, version)
+);
+
+CREATE TABLE IF NOT EXISTS website_term_acceptances (
+  id SERIAL PRIMARY KEY,
+  visitor_id VARCHAR(120) NOT NULL,
+  term_id INT REFERENCES website_terms(id) ON DELETE SET NULL,
+  term_key VARCHAR(40) NOT NULL,
+  term_version INT NOT NULL,
+  accepted BOOLEAN NOT NULL DEFAULT true,
+  consent_scope VARCHAR(120),
+  page_path VARCHAR(500),
+  locale VARCHAR(10),
+  ip VARCHAR(120),
+  user_agent VARCHAR(512),
+  accepted_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS medical_questionnaire_templates (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  version INT NOT NULL DEFAULT 1,
+  is_active BOOLEAN NOT NULL DEFAULT false,
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS medical_questionnaire_questions (
+  id SERIAL PRIMARY KEY,
+  template_id INT NOT NULL REFERENCES medical_questionnaire_templates(id) ON DELETE CASCADE,
+  sort_order INT NOT NULL DEFAULT 0,
+  question_key VARCHAR(120) NOT NULL,
+  label TEXT NOT NULL,
+  question_type VARCHAR(40) NOT NULL DEFAULT 'boolean',
+  is_required BOOLEAN NOT NULL DEFAULT true,
+  options_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(template_id, question_key)
+);
+
+CREATE TABLE IF NOT EXISTS medical_questionnaire_submissions (
+  id SERIAL PRIMARY KEY,
+  template_id INT NOT NULL REFERENCES medical_questionnaire_templates(id) ON DELETE RESTRICT,
+  lead_id INT REFERENCES leads(id) ON DELETE SET NULL,
+  reservation_id INT REFERENCES trial_reservations(id) ON DELETE SET NULL,
+  terms_accepted BOOLEAN,
+  terms_payload JSONB NOT NULL DEFAULT '[]'::jsonb,
+  submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS medical_questionnaire_answers (
+  id SERIAL PRIMARY KEY,
+  submission_id INT NOT NULL REFERENCES medical_questionnaire_submissions(id) ON DELETE CASCADE,
+  question_id INT REFERENCES medical_questionnaire_questions(id) ON DELETE SET NULL,
+  question_key VARCHAR(120) NOT NULL,
+  answer_boolean BOOLEAN,
+  answer_text TEXT,
+  answer_option VARCHAR(255),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_website_terms_single_active
+  ON website_terms(term_key, locale)
+  WHERE is_active = true;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_medical_questionnaire_single_active
+  ON medical_questionnaire_templates((is_active))
+  WHERE is_active = true;
+
+CREATE INDEX IF NOT EXISTS idx_website_term_acceptances_visitor
+  ON website_term_acceptances(visitor_id, accepted_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_website_term_acceptances_term
+  ON website_term_acceptances(term_id, accepted_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_medical_questionnaire_submissions_lead
+  ON medical_questionnaire_submissions(lead_id, submitted_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_medical_questionnaire_submissions_reservation
+  ON medical_questionnaire_submissions(reservation_id, submitted_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_medical_questionnaire_answers_submission
+  ON medical_questionnaire_answers(submission_id);
+
+DO $$
+DECLARE
+  v_template_id INT;
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM medical_questionnaire_templates
+    WHERE version = 1
+  ) THEN
+    INSERT INTO medical_questionnaire_templates (name, description, version, is_active, published_at)
+    VALUES (
+      'PAR-Q Padrão',
+      'Questionário médico inicial para agendamento de aula experimental.',
+      1,
+      true,
+      NOW()
+    )
+    RETURNING id INTO v_template_id;
+
+    INSERT INTO medical_questionnaire_questions (template_id, sort_order, question_key, label, question_type, is_required)
+    VALUES
+      (v_template_id, 1, 'question_1', 'Algum médico já disse que você possui problema de coração e que só deve realizar atividade física supervisionada?', 'boolean', true),
+      (v_template_id, 2, 'question_2', 'Você sente dor no peito quando pratica atividade física?', 'boolean', true),
+      (v_template_id, 3, 'question_3', 'Você sentiu dor no peito no último mês sem estar praticando atividade física?', 'boolean', true),
+      (v_template_id, 4, 'question_4', 'Você perde o equilíbrio por tontura ou já perdeu a consciência?', 'boolean', true),
+      (v_template_id, 5, 'question_5', 'Você possui problema ósseo ou articular que pode piorar com atividade física?', 'boolean', true),
+      (v_template_id, 6, 'question_6', 'Seu médico prescreveu medicamentos para pressão arterial ou problema cardíaco?', 'boolean', true),
+      (v_template_id, 7, 'question_7', 'Você conhece outro motivo que impeça a prática de atividade física?', 'boolean', true),
+      (v_template_id, 8, 'question_8', 'Você possui histórico de convulsão, desmaio ou crise epiléptica?', 'boolean', true),
+      (v_template_id, 9, 'question_9', 'Você possui alguma alergia grave ou condição respiratória importante?', 'boolean', true),
+      (v_template_id, 10, 'question_10', 'Nos últimos 12 meses você realizou cirurgia, internação ou tratamento médico relevante?', 'boolean', true),
+      (v_template_id, 11, 'additional_info', 'Se respondeu SIM em alguma pergunta, descreva brevemente (opcional).', 'text', false);
+  END IF;
+END $$;
+
+INSERT INTO website_terms (term_key, locale, title, content, version, is_active, published_at)
+SELECT 'privacy', 'pt-BR', 'Política de Privacidade', 'Defina aqui o conteúdo da política de privacidade no painel administrativo.', 1, true, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM website_terms WHERE term_key = 'privacy' AND locale = 'pt-BR' AND version = 1);
+
+INSERT INTO website_terms (term_key, locale, title, content, version, is_active, published_at)
+SELECT 'terms', 'pt-BR', 'Termos de Uso', 'Defina aqui o conteúdo dos termos de uso no painel administrativo.', 1, true, NOW()
+WHERE NOT EXISTS (SELECT 1 FROM website_terms WHERE term_key = 'terms' AND locale = 'pt-BR' AND version = 1);
+
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders(customer_id);
 CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_customer ON subscriptions(customer_id);

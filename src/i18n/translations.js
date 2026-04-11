@@ -122,6 +122,13 @@ export const translations = {
     'trial.genderRequired': 'Informe o sexo.',
     'trial.preferFemaleInstructorRequired':
       'Informe se tem preferência por professora/instrutora feminina.',
+    'trial.medicalTitle': 'Questionário médico (obrigatório)',
+    'trial.medicalRequired':
+      'Responda todas as perguntas obrigatórias do questionário médico para continuar.',
+    'trial.termsAgreement':
+      'Declaro que li e concordo com a Política de Privacidade e os Termos de Uso.',
+    'trial.termsRequired':
+      'Você precisa aceitar a Política de Privacidade e os Termos de Uso para enviar o agendamento.',
 
     'highlights.title': 'Destaques',
 
@@ -190,6 +197,15 @@ export const translations = {
     'footer.subscribe': 'Inscrever-se',
     'footer.copyright': '© {year} GFTeam Tubarão. Todos os direitos reservados.',
     'footer.privacy': 'Política de Privacidade',
+    'legal.bannerText':
+      'Usamos seus dados para melhorar sua experiência e registrar consentimentos legais.',
+    'legal.privacy': 'Política de Privacidade',
+    'legal.terms': 'Termos de Uso',
+    'legal.accept': 'Aceitar e continuar',
+    'legal.later': 'Depois',
+    'legal.saving': 'Salvando...',
+    'legal.close': 'Fechar',
+    'legal.notAvailable': 'Conteúdo não disponível no momento.',
   },
 
   en: {
@@ -310,6 +326,13 @@ export const translations = {
     'trial.genderRequired': 'Please select your gender.',
     'trial.preferFemaleInstructorRequired':
       'Please indicate if you prefer a female instructor.',
+    'trial.medicalTitle': 'Medical questionnaire (required)',
+    'trial.medicalRequired':
+      'Please complete all required medical questionnaire fields before submitting.',
+    'trial.termsAgreement':
+      'I have read and agree to the Privacy Policy and Terms of Use.',
+    'trial.termsRequired':
+      'You must agree to the Privacy Policy and Terms of Use to submit this booking.',
 
     'highlights.title': 'Highlights',
 
@@ -377,6 +400,15 @@ export const translations = {
     'footer.subscribe': 'Subscribe',
     'footer.copyright': '© {year} GFTeam Tubarão. All rights reserved.',
     'footer.privacy': 'Privacy policy',
+    'legal.bannerText':
+      'We use your data to improve your experience and register legal consent.',
+    'legal.privacy': 'Privacy Policy',
+    'legal.terms': 'Terms of Use',
+    'legal.accept': 'Accept and continue',
+    'legal.later': 'Later',
+    'legal.saving': 'Saving...',
+    'legal.close': 'Close',
+    'legal.notAvailable': 'Content not available at the moment.',
   },
 
   es: {
@@ -499,6 +531,13 @@ export const translations = {
     'trial.genderRequired': 'Indica el sexo.',
     'trial.preferFemaleInstructorRequired':
       'Indica si tienes preferencia por profesora/instructora femenina.',
+    'trial.medicalTitle': 'Cuestionario médico (obligatorio)',
+    'trial.medicalRequired':
+      'Responde todas las preguntas obligatorias del cuestionario médico para continuar.',
+    'trial.termsAgreement':
+      'Declaro que leí y acepto la Política de Privacidad y los Términos de Uso.',
+    'trial.termsRequired':
+      'Debes aceptar la Política de Privacidad y los Términos de Uso para enviar la reserva.',
 
     'highlights.title': 'Destacados',
 
@@ -567,6 +606,15 @@ export const translations = {
     'footer.subscribe': 'Suscribirse',
     'footer.copyright': '© {year} GFTeam Tubarão. Todos los derechos reservados.',
     'footer.privacy': 'Política de privacidad',
+    'legal.bannerText':
+      'Usamos tus datos para mejorar tu experiencia y registrar consentimientos legales.',
+    'legal.privacy': 'Política de Privacidad',
+    'legal.terms': 'Términos de Uso',
+    'legal.accept': 'Aceptar y continuar',
+    'legal.later': 'Después',
+    'legal.saving': 'Guardando...',
+    'legal.close': 'Cerrar',
+    'legal.notAvailable': 'Contenido no disponible en este momento.',
   },
 }
 

@@ -1,4 +1,5 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '')
+const VISITOR_STORAGE_KEY = 'tubarao-visitor-id'
 
 async function get(path) {
   const res = await fetch(`${API_URL}${path}`)
@@ -44,6 +45,24 @@ export async function getSchedules() {
   } catch {
     return []
   }
+}
+
+export function getOrCreateVisitorId() {
+  try {
+    const existing = localStorage.getItem(VISITOR_STORAGE_KEY)
+    if (existing) return existing
+  } catch {
+    // ignore storage errors
+  }
+  const generated =
+    globalThis.crypto?.randomUUID?.() ||
+    `visitor_${Math.random().toString(36).slice(2)}_${Date.now().toString(36)}`
+  try {
+    localStorage.setItem(VISITOR_STORAGE_KEY, generated)
+  } catch {
+    // ignore storage errors
+  }
+  return generated
 }
 
 export async function submitContact(data) {
@@ -113,6 +132,33 @@ export async function createCheckoutSession(data) {
   const result = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(result.error || 'Falha ao iniciar checkout')
   return result
+}
+
+export async function getActiveLegalTerms(locale = 'pt-BR') {
+  try {
+    return await get(`/api/legal/active?locale=${encodeURIComponent(locale)}`)
+  } catch {
+    return []
+  }
+}
+
+export async function recordLegalAgreement(data) {
+  const res = await fetch(`${API_URL}/api/legal/agreements`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  const result = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(result.error || 'Falha ao registrar aceite legal')
+  return result
+}
+
+export async function getActiveMedicalQuestionnaire() {
+  try {
+    return await get('/api/medical-questionnaire/active')
+  } catch {
+    return { template: null, questions: [] }
+  }
 }
 
 export async function getPlans() {

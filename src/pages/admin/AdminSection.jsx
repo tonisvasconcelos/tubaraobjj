@@ -12,6 +12,8 @@ import TrialBookingsManage from './TrialBookingsManage'
 import InvoicesManage from './InvoicesManage'
 import StudentMessagesManage from './StudentMessagesManage'
 import AnalyticsManage from './AnalyticsManage'
+import WebsiteTermsManage from './WebsiteTermsManage'
+import MedicalQuestionnaireManage from './MedicalQuestionnaireManage'
 
 const SECTIONS = {
   team: TeamManage,
@@ -26,6 +28,8 @@ const SECTIONS = {
   analytics: AnalyticsManage,
   invoices: InvoicesManage,
   'student-messages': StudentMessagesManage,
+  'website-terms': WebsiteTermsManage,
+  'medical-questionnaire': MedicalQuestionnaireManage,
 }
 
 export default function AdminSection() {

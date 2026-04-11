@@ -5,6 +5,7 @@ import BackgroundVideo from '../components/BackgroundVideo'
 import Footer from '../components/Footer'
 import AnalyticsPageTracker from '../components/analytics/AnalyticsPageTracker'
 import ScrollToTop from '../components/ScrollToTop'
+import LegalConsentBanner from '../components/legal/LegalConsentBanner'
 import { getOrganizationSchema } from '../seo/organizationSchema'
 
 const MainLayout = () => {
@@ -39,6 +40,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
+      <LegalConsentBanner />
     </div>
   )
 }

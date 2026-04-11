@@ -100,4 +100,156 @@ async function createContact(req, res) {
 router.post('/contacts', rateLimit({ windowMs: 60_000, max: 8 }), createContact)
 router.post('/contact', rateLimit({ windowMs: 60_000, max: 8 }), createContact)
 
+function sanitizeLocale(value) {
+  const locale = String(value || 'pt-BR').trim()
+  if (!locale) return 'pt-BR'
+  return locale.slice(0, 10)
+}
+
+function getClientIp(req) {
+  const forwarded = String(req.headers['x-forwarded-for'] || '')
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean)
+  if (forwarded.length > 0) return forwarded[0].slice(0, 120)
+  return String(req.ip || '').slice(0, 120)
+}
+
+router.get('/legal/active', async (req, res) => {
+  try {
+    const locale = sanitizeLocale(req.query.locale)
+    const result = await pool.query(
+      `SELECT id, term_key, locale, title, content, version, published_at
+       FROM website_terms
+       WHERE is_active = true
+         AND (locale = $1 OR locale = 'pt-BR')
+       ORDER BY CASE WHEN locale = $1 THEN 0 ELSE 1 END, term_key ASC`,
+      [locale]
+    )
+
+    const dedup = new Map()
+    for (const row of result.rows) {
+      if (!dedup.has(row.term_key)) dedup.set(row.term_key, row)
+    }
+    res.json(Array.from(dedup.values()))
+  } catch (error) {
+    console.error('[public/legal/active]', error)
+    res.status(500).json({ error: 'Erro ao carregar termos ativos' })
+  }
+})
+
+router.get('/legal/:termKey', async (req, res) => {
+  try {
+    const termKey = String(req.params.termKey || '').trim()
+    if (!termKey) return res.status(400).json({ error: 'termKey é obrigatório' })
+    const locale = sanitizeLocale(req.query.locale)
+    const result = await pool.query(
+      `SELECT id, term_key, locale, title, content, version, published_at
+       FROM website_terms
+       WHERE term_key = $1
+         AND is_active = true
+         AND (locale = $2 OR locale = 'pt-BR')
+       ORDER BY CASE WHEN locale = $2 THEN 0 ELSE 1 END
+       LIMIT 1`,
+      [termKey, locale]
+    )
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Termo não encontrado' })
+    }
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error('[public/legal/key]', error)
+    res.status(500).json({ error: 'Erro ao carregar termo' })
+  }
+})
+
+router.post('/legal/agreements', rateLimit({ windowMs: 60_000, max: 12 }), async (req, res) => {
+  try {
+    const { visitorId, accepted, consentScope, locale, path, terms } = req.body || {}
+    if (!visitorId || typeof visitorId !== 'string') {
+      return res.status(400).json({ error: 'visitorId é obrigatório' })
+    }
+    if (typeof accepted !== 'boolean') {
+      return res.status(400).json({ error: 'accepted inválido' })
+    }
+    if (!Array.isArray(terms) || terms.length === 0) {
+      return res.status(400).json({ error: 'terms é obrigatório' })
+    }
+
+    const normalizedLocale = sanitizeLocale(locale)
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      for (const term of terms) {
+        const termId = Number(term?.termId)
+        const termVersion = Number(term?.version)
+        const termKey = String(term?.termKey || '').trim()
+        if (!termKey || Number.isNaN(termVersion)) {
+          await client.query('ROLLBACK')
+          return res.status(400).json({ error: 'Dados de termo inválidos no payload' })
+        }
+        await client.query(
+          `INSERT INTO website_term_acceptances (
+            visitor_id, term_id, term_key, term_version, accepted, consent_scope, page_path, locale, ip, user_agent
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            visitorId.trim().slice(0, 120),
+            Number.isNaN(termId) ? null : termId,
+            termKey.slice(0, 40),
+            termVersion,
+            accepted,
+            consentScope ? String(consentScope).trim().slice(0, 120) : null,
+            path ? String(path).trim().slice(0, 500) : null,
+            normalizedLocale,
+            getClientIp(req),
+            String(req.headers['user-agent'] || '').slice(0, 512),
+          ]
+        )
+      }
+      await client.query('COMMIT')
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
+
+    res.status(201).json({ ok: true })
+  } catch (error) {
+    console.error('[public/legal/agreements]', error)
+    res.status(500).json({ error: 'Erro ao registrar aceite' })
+  }
+})
+
+router.get('/medical-questionnaire/active', async (_req, res) => {
+  try {
+    const template = await pool.query(
+      `SELECT id, name, description, version, published_at
+       FROM medical_questionnaire_templates
+       WHERE is_active = true
+       ORDER BY published_at DESC NULLS LAST, updated_at DESC
+       LIMIT 1`
+    )
+    if (template.rows.length === 0) {
+      return res.json({ template: null, questions: [] })
+    }
+    const templateId = template.rows[0].id
+    const questions = await pool.query(
+      `SELECT id, template_id, sort_order, question_key, label, question_type, is_required, options_json
+       FROM medical_questionnaire_questions
+       WHERE template_id = $1
+       ORDER BY sort_order ASC, id ASC`,
+      [templateId]
+    )
+    res.json({
+      template: template.rows[0],
+      questions: questions.rows,
+    })
+  } catch (error) {
+    console.error('[public/medical-questionnaire/active]', error)
+    res.status(500).json({ error: 'Erro ao carregar questionário médico ativo' })
+  }
+})
+
 export default router

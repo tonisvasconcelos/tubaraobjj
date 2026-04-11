@@ -6,6 +6,7 @@ const router = express.Router()
 const TRIAL_CLASS_TYPES = new Set(['experimental_group', 'private_class'])
 const GI_SIZES = new Set(['A1', 'A2', 'A3', 'A4'])
 const GENDERS = new Set(['female', 'male', 'prefer_not_to_inform'])
+const ALLOWED_QUESTION_TYPES = new Set(['boolean', 'text', 'single_choice'])
 
 function isWeekdayDate(dateText) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) return false
@@ -103,6 +104,179 @@ function parseTrialIntakeFields(body) {
   }
 }
 
+async function getActiveMedicalTemplate(client) {
+  const templateResult = await client.query(
+    `SELECT id, name, version
+     FROM medical_questionnaire_templates
+     WHERE is_active = true
+     ORDER BY published_at DESC NULLS LAST, updated_at DESC
+     LIMIT 1`
+  )
+  if (templateResult.rows.length === 0) return null
+  const template = templateResult.rows[0]
+  const questionsResult = await client.query(
+    `SELECT id, question_key, question_type, is_required, options_json
+     FROM medical_questionnaire_questions
+     WHERE template_id = $1
+     ORDER BY sort_order ASC, id ASC`,
+    [template.id]
+  )
+  return {
+    ...template,
+    questions: questionsResult.rows,
+  }
+}
+
+function parseMedicalQuestionnairePayload(body, activeTemplate) {
+  if (!activeTemplate) return null
+  const payload = body?.medicalQuestionnaire
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('medicalQuestionnaire é obrigatório')
+  }
+  const templateId = Number(payload.templateId)
+  if (Number.isNaN(templateId) || templateId !== Number(activeTemplate.id)) {
+    throw new Error('templateId inválido para o questionário médico ativo')
+  }
+  if (!Array.isArray(payload.answers)) {
+    throw new Error('answers do questionário médico é obrigatório')
+  }
+
+  const incomingByKey = new Map()
+  for (const answer of payload.answers) {
+    const key = String(answer?.questionKey || '').trim()
+    if (!key) continue
+    incomingByKey.set(key, answer)
+  }
+
+  const normalizedAnswers = []
+  for (const question of activeTemplate.questions) {
+    const incoming = incomingByKey.get(question.question_key)
+    const questionType = String(question.question_type || 'boolean')
+    if (!ALLOWED_QUESTION_TYPES.has(questionType)) {
+      throw new Error(`question_type inválido para ${question.question_key}`)
+    }
+    if (!incoming) {
+      if (question.is_required) {
+        throw new Error(`Resposta obrigatória não informada: ${question.question_key}`)
+      }
+      continue
+    }
+
+    let answerBoolean = null
+    let answerText = null
+    let answerOption = null
+
+    if (questionType === 'boolean') {
+      if (typeof incoming.valueBoolean !== 'boolean') {
+        throw new Error(`Resposta inválida em ${question.question_key}`)
+      }
+      answerBoolean = incoming.valueBoolean
+    } else if (questionType === 'text') {
+      const text = String(incoming.valueText || '').trim()
+      if (question.is_required && !text) {
+        throw new Error(`Resposta obrigatória não informada: ${question.question_key}`)
+      }
+      answerText = text ? text.slice(0, 3000) : null
+    } else if (questionType === 'single_choice') {
+      const option = String(incoming.valueOption || '').trim()
+      if (question.is_required && !option) {
+        throw new Error(`Resposta obrigatória não informada: ${question.question_key}`)
+      }
+      const options = Array.isArray(question.options_json) ? question.options_json : []
+      if (option && options.length > 0 && !options.includes(option)) {
+        throw new Error(`Opção inválida em ${question.question_key}`)
+      }
+      answerOption = option || null
+    }
+
+    normalizedAnswers.push({
+      questionId: question.id,
+      questionKey: question.question_key,
+      answerBoolean,
+      answerText,
+      answerOption,
+    })
+  }
+
+  return {
+    templateId,
+    answers: normalizedAnswers,
+  }
+}
+
+function parseLegalAcceptancePayload(body) {
+  const legal = body?.legalAcceptance
+  if (!legal || typeof legal !== 'object') {
+    throw new Error('legalAcceptance é obrigatório')
+  }
+  if (legal.accepted !== true) {
+    throw new Error('Você deve aceitar os termos para concluir o agendamento')
+  }
+  const terms = Array.isArray(legal.terms) ? legal.terms : []
+  if (terms.length === 0) {
+    throw new Error('Metadados de termos não informados')
+  }
+  const normalizedTerms = terms.map((term) => ({
+    termId: Number(term?.termId) || null,
+    termKey: String(term?.termKey || '').trim().slice(0, 40),
+    version: Number(term?.version) || 1,
+    accepted: term?.accepted !== false,
+  }))
+  if (normalizedTerms.some((term) => !term.termKey)) {
+    throw new Error('Dados de termos inválidos')
+  }
+  return {
+    accepted: true,
+    visitorId: legal.visitorId ? String(legal.visitorId).trim().slice(0, 120) : null,
+    consentScope: legal.consentScope ? String(legal.consentScope).trim().slice(0, 120) : null,
+    locale: legal.locale ? String(legal.locale).trim().slice(0, 10) : null,
+    path: legal.path ? String(legal.path).trim().slice(0, 500) : null,
+    terms: normalizedTerms,
+  }
+}
+
+async function saveMedicalQuestionnaireSubmission(client, args) {
+  const { leadId, reservationId, questionnaire, legalAcceptance } = args
+  const submissionResult = await client.query(
+    `INSERT INTO medical_questionnaire_submissions (
+      template_id, lead_id, reservation_id, terms_accepted, terms_payload
+    )
+    VALUES ($1, $2, $3, $4, $5::jsonb)
+    RETURNING id`,
+    [
+      questionnaire.templateId,
+      leadId,
+      reservationId,
+      legalAcceptance.accepted,
+      JSON.stringify({
+        visitorId: legalAcceptance.visitorId,
+        consentScope: legalAcceptance.consentScope,
+        locale: legalAcceptance.locale,
+        path: legalAcceptance.path,
+        terms: legalAcceptance.terms,
+      }),
+    ]
+  )
+  const submissionId = submissionResult.rows[0].id
+  for (const answer of questionnaire.answers) {
+    await client.query(
+      `INSERT INTO medical_questionnaire_answers (
+        submission_id, question_id, question_key, answer_boolean, answer_text, answer_option
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        submissionId,
+        answer.questionId,
+        answer.questionKey,
+        answer.answerBoolean,
+        answer.answerText,
+        answer.answerOption,
+      ]
+    )
+  }
+  return submissionId
+}
+
 router.get('/slots', async (req, res) => {
   try {
     const from = req.query.from ? new Date(String(req.query.from)) : new Date()
@@ -159,6 +333,7 @@ router.get('/slots', async (req, res) => {
 })
 
 router.post('/private-request', rateLimit({ windowMs: 60_000, max: 8 }), async (req, res) => {
+  const client = await pool.connect()
   try {
     const { branchId, name, email, phone, requestedDate, requestedTime, interestProgram, notes } =
       req.body || {}
@@ -174,7 +349,7 @@ router.post('/private-request', rateLimit({ windowMs: 60_000, max: 8 }), async (
     if (Number.isNaN(branchIdNum) || branchIdNum < 1) {
       return res.status(400).json({ error: 'branchId inválido' })
     }
-    const branch = await pool.query('SELECT id, name FROM branches WHERE id = $1', [branchIdNum])
+    const branch = await client.query('SELECT id, name FROM branches WHERE id = $1', [branchIdNum])
     if (branch.rows.length === 0) {
       return res.status(400).json({ error: 'Unidade não encontrada' })
     }
@@ -205,7 +380,12 @@ router.post('/private-request', rateLimit({ windowMs: 60_000, max: 8 }), async (
       ? `${normalizedNotes}\n\n${extraNotes}`
       : extraNotes
 
-    const lead = await pool.query(
+    await client.query('BEGIN')
+    const activeTemplate = await getActiveMedicalTemplate(client)
+    const questionnaire = parseMedicalQuestionnairePayload(req.body || {}, activeTemplate)
+    const legalAcceptance = parseLegalAcceptancePayload(req.body || {})
+
+    const lead = await client.query(
       `INSERT INTO leads (
           name, email, phone, interest_program, preferred_time, notes,
           source, status, requested_class_type, requested_date, requested_time,
@@ -238,13 +418,34 @@ router.post('/private-request', rateLimit({ windowMs: 60_000, max: 8 }), async (
       ]
     )
 
+    if (questionnaire) {
+      await saveMedicalQuestionnaireSubmission(client, {
+        leadId: lead.rows[0].id,
+        reservationId: null,
+        questionnaire,
+        legalAcceptance,
+      })
+    }
+
+    await client.query('COMMIT')
+
     res.status(201).json({
       message: 'Solicitação de aula experimental privada registrada com sucesso.',
       leadId: lead.rows[0].id,
     })
   } catch (error) {
+    try {
+      await client.query('ROLLBACK')
+    } catch {
+      // no-op
+    }
     console.error('[trial/private-request]', error)
+    if (error instanceof Error && error.message) {
+      return res.status(400).json({ error: error.message })
+    }
     res.status(500).json({ error: 'Erro ao registrar solicitação privada' })
+  } finally {
+    client.release()
   }
 })
 
@@ -306,6 +507,10 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
       return res.status(400).json({ error: error.message || 'Dados adicionais inválidos' })
     }
 
+    const activeTemplate = await getActiveMedicalTemplate(client)
+    const questionnaire = parseMedicalQuestionnairePayload(req.body || {}, activeTemplate)
+    const legalAcceptance = parseLegalAcceptancePayload(req.body || {})
+
     const lead = await client.query(
       `INSERT INTO leads (
           name, email, phone, interest_program, notes, source, status, preferred_time, requested_class_type,
@@ -350,6 +555,15 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
       ]
     )
 
+    if (questionnaire) {
+      await saveMedicalQuestionnaireSubmission(client, {
+        leadId: lead.rows[0].id,
+        reservationId: reservation.rows[0].id,
+        questionnaire,
+        legalAcceptance,
+      })
+    }
+
     await client.query('COMMIT')
     res.status(201).json({
       message: 'Aula experimental agendada com sucesso.',
@@ -358,6 +572,9 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
   } catch (error) {
     await client.query('ROLLBACK')
     console.error('[trial/reservations]', error)
+    if (error instanceof Error && error.message) {
+      return res.status(400).json({ error: error.message })
+    }
     res.status(500).json({ error: 'Erro ao concluir agendamento' })
   } finally {
     client.release()

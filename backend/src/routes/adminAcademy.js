@@ -37,12 +37,25 @@ function isPostgresUniqueViolation(error) {
 }
 
 const TRIAL_CLASS_TYPES = new Set(['experimental_group', 'private_class'])
+const TERM_KEYS = new Set(['privacy', 'terms'])
+const QUESTION_TYPES = new Set(['boolean', 'text', 'single_choice'])
 
 function normalizeTrialClassType(value) {
   const v = String(value || '').trim()
   if (!v) return 'experimental_group'
   if (!TRIAL_CLASS_TYPES.has(v)) return null
   return v
+}
+
+function toBoolean(value, defaultValue = false) {
+  if (value === undefined || value === null || value === '') return defaultValue
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (['true', '1', 'yes', 'sim'].includes(normalized)) return true
+    if (['false', '0', 'no', 'nao', 'não'].includes(normalized)) return false
+  }
+  return defaultValue
 }
 
 // ----- Students -----
@@ -684,6 +697,515 @@ router.patch('/leads/:id', async (req, res) => {
   } catch (error) {
     console.error('[admin-academy/leads/update]', error)
     res.status(500).json({ error: 'Erro ao atualizar lead' })
+  }
+})
+
+// ----- Website terms registry -----
+router.get('/website-terms', async (req, res) => {
+  try {
+    const termKey = req.query.term_key ? String(req.query.term_key).trim() : null
+    const locale = req.query.locale ? String(req.query.locale).trim() : null
+    const params = []
+    const filters = []
+    if (termKey) {
+      params.push(termKey)
+      filters.push(`term_key = $${params.length}`)
+    }
+    if (locale) {
+      params.push(locale)
+      filters.push(`locale = $${params.length}`)
+    }
+    const where = filters.length ? `WHERE ${filters.join(' AND ')}` : ''
+    const result = await pool.query(
+      `SELECT *
+       FROM website_terms
+       ${where}
+       ORDER BY term_key ASC, locale ASC, version DESC`,
+      params
+    )
+    res.json(result.rows)
+  } catch (error) {
+    console.error('[admin-academy/website-terms/list]', error)
+    res.status(500).json({ error: 'Erro ao listar termos do site' })
+  }
+})
+
+router.post('/website-terms', async (req, res) => {
+  try {
+    const { term_key, locale, title, content, version, is_active, publish_now } = req.body || {}
+    if (!term_key || !TERM_KEYS.has(String(term_key).trim())) {
+      return res.status(400).json({ error: 'term_key inválido (privacy ou terms)' })
+    }
+    if (!title || !content) {
+      return res.status(400).json({ error: 'title e content são obrigatórios' })
+    }
+    const active = toBoolean(is_active, false)
+    const publishNow = toBoolean(publish_now, active)
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      if (active) {
+        await client.query(
+          `UPDATE website_terms
+           SET is_active = false, updated_at = NOW()
+           WHERE term_key = $1 AND locale = $2`,
+          [String(term_key).trim(), String(locale || 'pt-BR').trim().slice(0, 10)]
+        )
+      }
+      const result = await client.query(
+        `INSERT INTO website_terms (term_key, locale, title, content, version, is_active, published_at)
+         VALUES ($1, $2, $3, $4, $5, $6, CASE WHEN $7 THEN NOW() ELSE NULL END)
+         RETURNING *`,
+        [
+          String(term_key).trim(),
+          String(locale || 'pt-BR').trim().slice(0, 10),
+          String(title).trim().slice(0, 255),
+          String(content).trim(),
+          Number(version) || 1,
+          active,
+          publishNow,
+        ]
+      )
+      await client.query('COMMIT')
+      res.status(201).json(result.rows[0])
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('[admin-academy/website-terms/create]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({ error: 'Já existe esta versão para este termo e idioma' })
+    }
+    res.status(500).json({ error: 'Erro ao criar termo do site' })
+  }
+})
+
+router.put('/website-terms/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const { title, content, version, locale, is_active, publish_now } = req.body || {}
+    const current = await pool.query('SELECT id, term_key, locale FROM website_terms WHERE id = $1', [id])
+    if (current.rows.length === 0) return res.status(404).json({ error: 'Termo não encontrado' })
+    const termKey = current.rows[0].term_key
+    const targetLocale = String(locale || current.rows[0].locale || 'pt-BR')
+      .trim()
+      .slice(0, 10)
+    const active = toBoolean(is_active, false)
+    const publishNow = toBoolean(publish_now, active)
+
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      if (active) {
+        await client.query(
+          `UPDATE website_terms
+           SET is_active = false, updated_at = NOW()
+           WHERE term_key = $1 AND locale = $2 AND id <> $3`,
+          [termKey, targetLocale, id]
+        )
+      }
+      const result = await client.query(
+        `UPDATE website_terms
+         SET title = COALESCE($1, title),
+             content = COALESCE($2, content),
+             version = COALESCE($3, version),
+             locale = COALESCE($4, locale),
+             is_active = $5,
+             published_at = CASE WHEN $6 THEN COALESCE(published_at, NOW()) ELSE published_at END,
+             updated_at = NOW()
+         WHERE id = $7
+         RETURNING *`,
+        [
+          title ? String(title).trim().slice(0, 255) : null,
+          content ? String(content).trim() : null,
+          Number(version) || null,
+          targetLocale,
+          active,
+          publishNow,
+          id,
+        ]
+      )
+      await client.query('COMMIT')
+      res.json(result.rows[0])
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('[admin-academy/website-terms/update]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({ error: 'Conflito de versão para este termo' })
+    }
+    res.status(500).json({ error: 'Erro ao atualizar termo do site' })
+  }
+})
+
+router.patch('/website-terms/:id/publish', async (req, res) => {
+  const client = await pool.connect()
+  try {
+    const id = Number(req.params.id)
+    await client.query('BEGIN')
+    const term = await client.query('SELECT id, term_key, locale FROM website_terms WHERE id = $1 FOR UPDATE', [id])
+    if (term.rows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ error: 'Termo não encontrado' })
+    }
+    await client.query(
+      `UPDATE website_terms
+       SET is_active = false, updated_at = NOW()
+       WHERE term_key = $1 AND locale = $2`,
+      [term.rows[0].term_key, term.rows[0].locale]
+    )
+    const result = await client.query(
+      `UPDATE website_terms
+       SET is_active = true, published_at = NOW(), updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    )
+    await client.query('COMMIT')
+    res.json(result.rows[0])
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('[admin-academy/website-terms/publish]', error)
+    res.status(500).json({ error: 'Erro ao publicar termo do site' })
+  } finally {
+    client.release()
+  }
+})
+
+router.delete('/website-terms/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const result = await pool.query('DELETE FROM website_terms WHERE id = $1 RETURNING id', [id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Termo não encontrado' })
+    res.status(204).send()
+  } catch (error) {
+    console.error('[admin-academy/website-terms/delete]', error)
+    res.status(500).json({ error: 'Erro ao remover termo do site' })
+  }
+})
+
+// ----- Medical questionnaire templates -----
+router.get('/medical-questionnaire/templates', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM medical_questionnaire_templates
+       ORDER BY version DESC, updated_at DESC`
+    )
+    res.json(result.rows)
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/templates/list]', error)
+    res.status(500).json({ error: 'Erro ao listar templates do questionário médico' })
+  }
+})
+
+router.post('/medical-questionnaire/templates', async (req, res) => {
+  try {
+    const { name, description, version, is_active, publish_now } = req.body || {}
+    if (!name) return res.status(400).json({ error: 'name é obrigatório' })
+    const active = toBoolean(is_active, false)
+    const publishNow = toBoolean(publish_now, active)
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      if (active) {
+        await client.query(
+          `UPDATE medical_questionnaire_templates
+           SET is_active = false, updated_at = NOW()
+           WHERE is_active = true`
+        )
+      }
+      const result = await client.query(
+        `INSERT INTO medical_questionnaire_templates (name, description, version, is_active, published_at)
+         VALUES ($1, $2, $3, $4, CASE WHEN $5 THEN NOW() ELSE NULL END)
+         RETURNING *`,
+        [
+          String(name).trim().slice(0, 255),
+          description ? String(description).trim().slice(0, 4000) : null,
+          Number(version) || 1,
+          active,
+          publishNow,
+        ]
+      )
+      await client.query('COMMIT')
+      res.status(201).json(result.rows[0])
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/templates/create]', error)
+    res.status(500).json({ error: 'Erro ao criar template do questionário médico' })
+  }
+})
+
+router.put('/medical-questionnaire/templates/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const { name, description, version, is_active, publish_now } = req.body || {}
+    const active = toBoolean(is_active, false)
+    const publishNow = toBoolean(publish_now, active)
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+      if (active) {
+        await client.query(
+          `UPDATE medical_questionnaire_templates
+           SET is_active = false, updated_at = NOW()
+           WHERE is_active = true AND id <> $1`,
+          [id]
+        )
+      }
+      const result = await client.query(
+        `UPDATE medical_questionnaire_templates
+         SET name = COALESCE($1, name),
+             description = $2,
+             version = COALESCE($3, version),
+             is_active = $4,
+             published_at = CASE WHEN $5 THEN COALESCE(published_at, NOW()) ELSE published_at END,
+             updated_at = NOW()
+         WHERE id = $6
+         RETURNING *`,
+        [
+          name ? String(name).trim().slice(0, 255) : null,
+          description ? String(description).trim().slice(0, 4000) : null,
+          Number(version) || null,
+          active,
+          publishNow,
+          id,
+        ]
+      )
+      if (result.rows.length === 0) {
+        await client.query('ROLLBACK')
+        return res.status(404).json({ error: 'Template não encontrado' })
+      }
+      await client.query('COMMIT')
+      res.json(result.rows[0])
+    } catch (error) {
+      await client.query('ROLLBACK')
+      throw error
+    } finally {
+      client.release()
+    }
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/templates/update]', error)
+    res.status(500).json({ error: 'Erro ao atualizar template do questionário médico' })
+  }
+})
+
+router.patch('/medical-questionnaire/templates/:id/activate', async (req, res) => {
+  const client = await pool.connect()
+  try {
+    const id = Number(req.params.id)
+    await client.query('BEGIN')
+    const template = await client.query(
+      `SELECT id
+       FROM medical_questionnaire_templates
+       WHERE id = $1
+       FOR UPDATE`,
+      [id]
+    )
+    if (template.rows.length === 0) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ error: 'Template não encontrado' })
+    }
+    await client.query(
+      `UPDATE medical_questionnaire_templates
+       SET is_active = false, updated_at = NOW()
+       WHERE is_active = true`
+    )
+    const result = await client.query(
+      `UPDATE medical_questionnaire_templates
+       SET is_active = true, published_at = NOW(), updated_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    )
+    await client.query('COMMIT')
+    res.json(result.rows[0])
+  } catch (error) {
+    await client.query('ROLLBACK')
+    console.error('[admin-academy/medical-questionnaire/templates/activate]', error)
+    res.status(500).json({ error: 'Erro ao ativar template do questionário médico' })
+  } finally {
+    client.release()
+  }
+})
+
+router.delete('/medical-questionnaire/templates/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const result = await pool.query(
+      'DELETE FROM medical_questionnaire_templates WHERE id = $1 RETURNING id',
+      [id]
+    )
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Template não encontrado' })
+    res.status(204).send()
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/templates/delete]', error)
+    res.status(500).json({ error: 'Erro ao remover template do questionário médico' })
+  }
+})
+
+router.get('/medical-questionnaire/questions', async (req, res) => {
+  try {
+    const templateId = Number(req.query.template_id)
+    if (Number.isNaN(templateId)) {
+      return res.status(400).json({ error: 'template_id é obrigatório' })
+    }
+    const result = await pool.query(
+      `SELECT *
+       FROM medical_questionnaire_questions
+       WHERE template_id = $1
+       ORDER BY sort_order ASC, id ASC`,
+      [templateId]
+    )
+    res.json(result.rows)
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/questions/list]', error)
+    res.status(500).json({ error: 'Erro ao listar perguntas do questionário médico' })
+  }
+})
+
+router.post('/medical-questionnaire/questions', async (req, res) => {
+  try {
+    const { template_id, sort_order, question_key, label, question_type, is_required, options_json } =
+      req.body || {}
+    const templateId = Number(template_id)
+    if (Number.isNaN(templateId)) return res.status(400).json({ error: 'template_id inválido' })
+    if (!question_key || !label) {
+      return res.status(400).json({ error: 'question_key e label são obrigatórios' })
+    }
+    const questionType = String(question_type || 'boolean').trim()
+    if (!QUESTION_TYPES.has(questionType)) {
+      return res.status(400).json({ error: 'question_type inválido' })
+    }
+    const result = await pool.query(
+      `INSERT INTO medical_questionnaire_questions (
+        template_id, sort_order, question_key, label, question_type, is_required, options_json
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+      RETURNING *`,
+      [
+        templateId,
+        Number(sort_order) || 0,
+        String(question_key).trim().slice(0, 120),
+        String(label).trim(),
+        questionType,
+        toBoolean(is_required, true),
+        JSON.stringify(Array.isArray(options_json) ? options_json : []),
+      ]
+    )
+    res.status(201).json(result.rows[0])
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/questions/create]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({ error: 'question_key já existe neste template' })
+    }
+    res.status(500).json({ error: 'Erro ao criar pergunta do questionário médico' })
+  }
+})
+
+router.put('/medical-questionnaire/questions/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const { sort_order, question_key, label, question_type, is_required, options_json } = req.body || {}
+    const questionType = String(question_type || 'boolean').trim()
+    if (!QUESTION_TYPES.has(questionType)) {
+      return res.status(400).json({ error: 'question_type inválido' })
+    }
+    const result = await pool.query(
+      `UPDATE medical_questionnaire_questions
+       SET sort_order = COALESCE($1, sort_order),
+           question_key = COALESCE($2, question_key),
+           label = COALESCE($3, label),
+           question_type = COALESCE($4, question_type),
+           is_required = COALESCE($5, is_required),
+           options_json = COALESCE($6::jsonb, options_json),
+           updated_at = NOW()
+       WHERE id = $7
+       RETURNING *`,
+      [
+        Number(sort_order) || null,
+        question_key ? String(question_key).trim().slice(0, 120) : null,
+        label ? String(label).trim() : null,
+        questionType,
+        typeof is_required === 'boolean' ? is_required : null,
+        options_json ? JSON.stringify(Array.isArray(options_json) ? options_json : []) : null,
+        id,
+      ]
+    )
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Pergunta não encontrada' })
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/questions/update]', error)
+    if (isPostgresUniqueViolation(error)) {
+      return res.status(409).json({ error: 'question_key já existe neste template' })
+    }
+    res.status(500).json({ error: 'Erro ao atualizar pergunta do questionário médico' })
+  }
+})
+
+router.delete('/medical-questionnaire/questions/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id)
+    const result = await pool.query(
+      'DELETE FROM medical_questionnaire_questions WHERE id = $1 RETURNING id',
+      [id]
+    )
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Pergunta não encontrada' })
+    res.status(204).send()
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/questions/delete]', error)
+    res.status(500).json({ error: 'Erro ao remover pergunta do questionário médico' })
+  }
+})
+
+router.get('/medical-questionnaire/submissions', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT mqs.*, mqt.name AS template_name, mqt.version AS template_version,
+              l.name AS lead_name, l.email AS lead_email, l.phone AS lead_phone,
+              tr.id AS reservation_public_id
+       FROM medical_questionnaire_submissions mqs
+       JOIN medical_questionnaire_templates mqt ON mqt.id = mqs.template_id
+       LEFT JOIN leads l ON l.id = mqs.lead_id
+       LEFT JOIN trial_reservations tr ON tr.id = mqs.reservation_id
+       ORDER BY mqs.submitted_at DESC`
+    )
+    const submissionIds = result.rows.map((row) => row.id)
+    if (submissionIds.length === 0) return res.json([])
+    const answers = await pool.query(
+      `SELECT submission_id, question_key, answer_boolean, answer_text, answer_option
+       FROM medical_questionnaire_answers
+       WHERE submission_id = ANY($1::int[])
+       ORDER BY submission_id ASC, id ASC`,
+      [submissionIds]
+    )
+    const answersBySubmission = new Map()
+    for (const answer of answers.rows) {
+      if (!answersBySubmission.has(answer.submission_id)) {
+        answersBySubmission.set(answer.submission_id, [])
+      }
+      answersBySubmission.get(answer.submission_id).push(answer)
+    }
+    const payload = result.rows.map((row) => ({
+      ...row,
+      answers: answersBySubmission.get(row.id) || [],
+    }))
+    res.json(payload)
+  } catch (error) {
+    console.error('[admin-academy/medical-questionnaire/submissions/list]', error)
+    res.status(500).json({ error: 'Erro ao listar submissões do questionário médico' })
   }
 })
 
