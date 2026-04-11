@@ -46,6 +46,17 @@ function parseOptionalId(value) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : NaN
 }
 
+const SCHEDULE_TARGET_PUBLIC = new Set(['unisex', 'female_only'])
+
+function normalizeTargetPublic(value) {
+  if (value === null || value === undefined || value === '') return 'unisex'
+  const v = String(value).trim()
+  if (!SCHEDULE_TARGET_PUBLIC.has(v)) {
+    throw new Error('target_public inválido (use unisex ou female_only)')
+  }
+  return v
+}
+
 // ----- Upload (single image) -----
 router.post('/upload', upload.single('file'), async (req, res) => {
   try {
@@ -91,6 +102,7 @@ router.post('/schedules', async (req, res) => {
       sort_order,
       is_published,
       team_member_id,
+      target_public,
     } =
       req.body || {}
     const day = parseInt(day_of_week, 10)
@@ -107,9 +119,15 @@ router.post('/schedules', async (req, res) => {
         return res.status(400).json({ error: 'Professor responsável não encontrado' })
       }
     }
+    let targetPublic
+    try {
+      targetPublic = normalizeTargetPublic(target_public)
+    } catch (err) {
+      return res.status(400).json({ error: err.message })
+    }
     const r = await pool.query(
-      `INSERT INTO training_schedules (branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published, team_member_id)
-       VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8, $9) RETURNING *`,
+      `INSERT INTO training_schedules (branch_name, training_type, day_of_week, start_time, end_time, notes, sort_order, is_published, team_member_id, target_public)
+       VALUES ($1, $2, $3, $4::time, $5::time, $6, $7, $8, $9, $10) RETURNING *`,
       [
         branch_name || '',
         training_type || '',
@@ -120,6 +138,7 @@ router.post('/schedules', async (req, res) => {
         sort_order ?? 0,
         is_published !== false,
         teamMemberId,
+        targetPublic,
       ]
     )
     res.status(201).json(r.rows[0])
@@ -142,6 +161,7 @@ router.put('/schedules/:id', async (req, res) => {
       sort_order,
       is_published,
       team_member_id,
+      target_public,
     } =
       req.body || {}
     const day = parseInt(day_of_week, 10)
@@ -158,11 +178,17 @@ router.put('/schedules/:id', async (req, res) => {
         return res.status(400).json({ error: 'Professor responsável não encontrado' })
       }
     }
+    let targetPublic
+    try {
+      targetPublic = normalizeTargetPublic(target_public)
+    } catch (err) {
+      return res.status(400).json({ error: err.message })
+    }
     const r = await pool.query(
       `UPDATE training_schedules SET branch_name = $1, training_type = $2, day_of_week = $3,
        start_time = $4::time, end_time = $5::time, notes = $6, sort_order = $7, is_published = $8,
-       team_member_id = $9, updated_at = NOW()
-       WHERE id = $10 RETURNING *`,
+       team_member_id = $9, target_public = $10, updated_at = NOW()
+       WHERE id = $11 RETURNING *`,
       [
         branch_name ?? '',
         training_type ?? '',
@@ -173,6 +199,7 @@ router.put('/schedules/:id', async (req, res) => {
         sort_order ?? 0,
         is_published !== false,
         teamMemberId,
+        targetPublic,
         id,
       ]
     )

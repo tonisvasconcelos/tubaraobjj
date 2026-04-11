@@ -97,10 +97,15 @@ export default function SchedulePage() {
                       <ul className="space-y-4">
                         {byBranch[branch][d].map((row) => {
                           const hasInstructor = Boolean(row.team_member_name?.trim())
+                          const isFemaleOnly = row.target_public === 'female_only'
                           return (
                             <li
                               key={row.id}
-                              className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/90 shadow-md shadow-slate-900/5 overflow-hidden"
+                              className={`rounded-2xl border shadow-md overflow-hidden ${
+                                isFemaleOnly
+                                  ? 'border-pink-300 ring-2 ring-pink-200/90 bg-gradient-to-br from-pink-50/95 to-white shadow-pink-900/10'
+                                  : 'border-slate-200/90 bg-gradient-to-br from-white to-slate-50/90 shadow-slate-900/5'
+                              }`}
                             >
                               <div className="p-4 sm:p-5">
                                 <div
@@ -112,12 +117,20 @@ export default function SchedulePage() {
                                         <img
                                           src={row.team_member_photo_url}
                                           alt={row.team_member_name}
-                                          className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white shadow-lg border border-slate-200/80"
+                                          className={`w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white shadow-lg border ${
+                                            isFemaleOnly
+                                              ? 'border-pink-300 ring-pink-100'
+                                              : 'border-slate-200/80'
+                                          }`}
                                           loading="lazy"
                                         />
                                       ) : (
                                         <div
-                                          className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-tight shadow-lg ring-4 ring-white border border-slate-600/30"
+                                          className={`w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-tight shadow-lg ring-4 ring-white border ${
+                                            isFemaleOnly
+                                              ? 'from-pink-600 to-pink-800 border-pink-400 ring-pink-100'
+                                              : 'from-slate-700 to-slate-900 border-slate-600/30'
+                                          }`}
                                           aria-label={row.team_member_name}
                                           role="img"
                                         >
@@ -127,9 +140,19 @@ export default function SchedulePage() {
                                     </div>
                                   ) : null}
                                   <div className="flex-1 min-w-0 space-y-2">
-                                    <h4 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug tracking-tight">
-                                      {row.training_type}
-                                    </h4>
+                                    <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
+                                      <h4 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug tracking-tight min-w-0 flex-1">
+                                        {row.training_type}
+                                      </h4>
+                                      {isFemaleOnly ? (
+                                        <span
+                                          className="shrink-0 inline-flex items-center rounded-full border border-pink-300 bg-pink-100 px-2.5 py-1 text-xs font-semibold text-pink-900 shadow-sm"
+                                          title={t('schedule.badge.femaleOnly')}
+                                        >
+                                          {t('schedule.badge.femaleOnly')}
+                                        </span>
+                                      ) : null}
+                                    </div>
                                     {hasInstructor ? (
                                       <p className="text-base sm:text-lg font-semibold text-slate-800">
                                         <span className="text-slate-500 font-medium not-italic">

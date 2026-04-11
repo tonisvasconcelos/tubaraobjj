@@ -202,6 +202,7 @@ export const translations = {
     'schedule.day.4': 'Quinta-feira',
     'schedule.day.5': 'Sexta-feira',
     'schedule.day.6': 'Sábado',
+    'schedule.badge.femaleOnly': 'Apenas feminino',
 
     'footer.sendMessage': 'Enviar mensagem',
     'footer.placeholder.name': 'Nome',
@@ -430,6 +431,7 @@ export const translations = {
     'schedule.day.4': 'Thursday',
     'schedule.day.5': 'Friday',
     'schedule.day.6': 'Saturday',
+    'schedule.badge.femaleOnly': 'Women only',
 
     'footer.sendMessage': 'Send a message',
     'footer.placeholder.name': 'Name',
@@ -661,6 +663,7 @@ export const translations = {
     'schedule.day.4': 'Jueves',
     'schedule.day.5': 'Viernes',
     'schedule.day.6': 'Sábado',
+    'schedule.badge.femaleOnly': 'Solo mujeres',
 
     'footer.sendMessage': 'Enviar mensaje',
     'footer.placeholder.name': 'Nombre',

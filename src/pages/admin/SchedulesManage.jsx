@@ -18,10 +18,16 @@ function formatTimeForInput(t) {
   return s.length >= 5 ? s.slice(0, 5) : s
 }
 
+const TARGET_PUBLIC_OPTIONS = [
+  { value: 'unisex', label: 'Unissex' },
+  { value: 'female_only', label: 'Apenas feminino' },
+]
+
 const emptyForm = () => ({
   branch_name: '',
   training_type: '',
   team_member_id: '',
+  target_public: 'unisex',
   day_of_week: 1,
   start_time: '18:00',
   end_time: '19:30',
@@ -68,6 +74,7 @@ export default function SchedulesManage() {
       branch_name: row.branch_name || '',
       training_type: row.training_type || '',
       team_member_id: row.team_member_id != null ? String(row.team_member_id) : '',
+      target_public: row.target_public === 'female_only' ? 'female_only' : 'unisex',
       day_of_week: Number(row.day_of_week) || 0,
       start_time: formatTimeForInput(row.start_time),
       end_time: formatTimeForInput(row.end_time),
@@ -84,6 +91,7 @@ export default function SchedulesManage() {
         branch_name: form.branch_name,
         training_type: form.training_type,
         team_member_id: form.team_member_id === '' ? null : Number(form.team_member_id),
+        target_public: form.target_public === 'female_only' ? 'female_only' : 'unisex',
         day_of_week: Number(form.day_of_week),
         start_time: form.start_time || '00:00',
         end_time: form.end_time || '00:00',
@@ -153,6 +161,20 @@ export default function SchedulesManage() {
                   <option key={member.id} value={member.id}>
                     {member.name}
                     {member.role ? ` — ${member.role}` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm text-slate-600 mb-1">Público-alvo</label>
+              <select
+                value={form.target_public}
+                onChange={(e) => setForm((f) => ({ ...f, target_public: e.target.value }))}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white"
+              >
+                {TARGET_PUBLIC_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
@@ -251,6 +273,11 @@ export default function SchedulesManage() {
                         </span>
                       </p>
                       <p className="text-sm text-slate-600">{row.training_type}</p>
+                      {row.target_public === 'female_only' && (
+                        <span className="inline-block mt-0.5 text-xs font-medium bg-pink-100 text-pink-800 px-2 py-0.5 rounded">
+                          Apenas feminino
+                        </span>
+                      )}
                       {row.team_member_name ? (
                         <p className="text-xs text-slate-500">
                           Prof. {row.team_member_name}
