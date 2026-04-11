@@ -28,7 +28,7 @@ const emptyForm = () => ({
   training_type: '',
   team_member_id: '',
   target_public: 'unisex',
-  day_of_week: 1,
+  day_of_weeks: [1],
   start_time: '18:00',
   end_time: '19:30',
   notes: '',
@@ -75,7 +75,7 @@ export default function SchedulesManage() {
       training_type: row.training_type || '',
       team_member_id: row.team_member_id != null ? String(row.team_member_id) : '',
       target_public: row.target_public === 'female_only' ? 'female_only' : 'unisex',
-      day_of_week: Number(row.day_of_week) || 0,
+      day_of_weeks: [Number(row.day_of_week) || 0],
       start_time: formatTimeForInput(row.start_time),
       end_time: formatTimeForInput(row.end_time),
       notes: row.notes || '',
@@ -84,15 +84,33 @@ export default function SchedulesManage() {
     })
   }
 
+  const toggleWeekday = (dayValue) => {
+    setForm((current) => {
+      const currentDays = Array.isArray(current.day_of_weeks) ? current.day_of_weeks : []
+      const hasDay = currentDays.includes(dayValue)
+      const nextDays = hasDay
+        ? currentDays.filter((d) => d !== dayValue)
+        : [...currentDays, dayValue].sort((a, b) => a - b)
+      return { ...current, day_of_weeks: nextDays }
+    })
+  }
+
   const save = async () => {
+    const selectedWeekdays = [...new Set((form.day_of_weeks || []).map(Number))]
+      .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+      .sort((a, b) => a - b)
+    if (selectedWeekdays.length === 0) {
+      alert('Selecione pelo menos um dia da semana.')
+      return
+    }
+
     setSaving(true)
     try {
-      const payload = {
+      const payloadBase = {
         branch_name: form.branch_name,
         training_type: form.training_type,
         team_member_id: form.team_member_id === '' ? null : Number(form.team_member_id),
         target_public: form.target_public === 'female_only' ? 'female_only' : 'unisex',
-        day_of_week: Number(form.day_of_week),
         start_time: form.start_time || '00:00',
         end_time: form.end_time || '00:00',
         notes: form.notes || null,
@@ -100,9 +118,20 @@ export default function SchedulesManage() {
         is_published: form.is_published,
       }
       if (editing) {
-        await admin.schedules.update(editing.id, payload)
+        const [firstDay, ...remainingDays] = selectedWeekdays
+        await admin.schedules.update(editing.id, { ...payloadBase, day_of_week: firstDay })
+        for (const day of remainingDays) {
+          await admin.schedules.create({ ...payloadBase, day_of_week: day })
+        }
+        if (remainingDays.length > 0) {
+          alert(
+            `Horário atualizado e ${remainingDays.length} horário(s) adicional(is) criado(s) para os outros dias selecionados.`
+          )
+        }
       } else {
-        await admin.schedules.create(payload)
+        for (const day of selectedWeekdays) {
+          await admin.schedules.create({ ...payloadBase, day_of_week: day })
+        }
       }
       setEditing(null)
       setForm(emptyForm())
@@ -181,17 +210,26 @@ export default function SchedulesManage() {
             </div>
             <div>
               <label className="block text-sm text-slate-600 mb-1">Dia da semana</label>
-              <select
-                value={form.day_of_week}
-                onChange={(e) => setForm((f) => ({ ...f, day_of_week: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg"
-              >
+              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 p-2">
                 {DAY_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
+                  <label
+                    key={d.value}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-sm cursor-pointer ${
+                      (form.day_of_weeks || []).includes(d.value)
+                        ? 'border-slate-900 bg-slate-900 text-white'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={(form.day_of_weeks || []).includes(d.value)}
+                      onChange={() => toggleWeekday(d.value)}
+                    />
                     {d.label}
-                  </option>
+                  </label>
                 ))}
-              </select>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
