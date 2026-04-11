@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getSchedules } from '../services/publicApi'
+import { useSearchParams } from 'react-router-dom'
+import { getBranches, getSchedules } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
 import Seo from '../components/seo/Seo'
 
@@ -25,18 +26,55 @@ function branchKey(row) {
 
 export default function SchedulePage() {
   const { t } = useLanguage()
+  const [searchParams] = useSearchParams()
   const [rows, setRows] = useState([])
+  const [branches, setBranches] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filterUnit, setFilterUnit] = useState('all')
-  const [filterTeacher, setFilterTeacher] = useState('all')
-  const [filterTarget, setFilterTarget] = useState('all')
+  const [filterUnit, setFilterUnit] = useState(() => searchParams.get('unit') || 'all')
+  const [filterTeacher, setFilterTeacher] = useState(() => searchParams.get('teacher') || 'all')
+  const [filterTarget, setFilterTarget] = useState(() => searchParams.get('target') || 'all')
 
   useEffect(() => {
-    getSchedules()
-      .then((d) => setRows(Array.isArray(d) ? d : []))
-      .catch(() => setRows([]))
+    Promise.all([getSchedules(), getBranches()])
+      .then(([scheduleData, branchData]) => {
+        setRows(Array.isArray(scheduleData) ? scheduleData : [])
+        setBranches(Array.isArray(branchData) ? branchData : [])
+      })
+      .catch(() => {
+        setRows([])
+        setBranches([])
+      })
       .finally(() => setLoading(false))
   }, [])
+
+  const branchAddressByName = useMemo(() => {
+    const map = new Map()
+    for (const branch of branches) {
+      const key = String(branch?.name || '').trim().toLocaleLowerCase()
+      if (!key) continue
+      const address = String(branch?.address || '').trim()
+      if (address) map.set(key, address)
+    }
+    return map
+  }, [branches])
+
+  function openBranchDirections(branchName) {
+    if (branchName === '__default__') {
+      window.location.assign('/addresses')
+      return
+    }
+    const address = branchAddressByName.get(String(branchName || '').trim().toLocaleLowerCase())
+    if (!address) {
+      window.location.assign('/addresses')
+      return
+    }
+    const destination = encodeURIComponent(address)
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&destination=${destination}`,
+      '_blank',
+      'noopener,noreferrer'
+    )
+  }
 
   const unitOptions = useMemo(() => {
     const keys = new Set()
@@ -63,6 +101,29 @@ export default function SchedulePage() {
       .map(([id, name]) => ({ id, name }))
     return { teacherOptions, hasNoInstructorOption: unassigned }
   }, [rows])
+
+  useEffect(() => {
+    const validUnits = new Set(unitOptions)
+    const validTeachers = new Set(teacherOptions.map((opt) => String(opt.id)))
+    const validTargets = new Set(['all', 'unisex', 'female_only'])
+
+    if (filterUnit !== 'all' && !validUnits.has(filterUnit)) {
+      setFilterUnit('all')
+    }
+    if (
+      filterTeacher !== 'all' &&
+      filterTeacher !== 'none' &&
+      !validTeachers.has(String(filterTeacher))
+    ) {
+      setFilterTeacher('all')
+    }
+    if (filterTeacher === 'none' && !hasNoInstructorOption) {
+      setFilterTeacher('all')
+    }
+    if (!validTargets.has(filterTarget)) {
+      setFilterTarget('all')
+    }
+  }, [filterUnit, filterTeacher, filterTarget, unitOptions, teacherOptions, hasNoInstructorOption])
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
@@ -222,9 +283,18 @@ export default function SchedulePage() {
                 key={branch}
                 className="bg-white/60 backdrop-blur-md rounded-2xl border border-white/40 shadow-md overflow-hidden"
               >
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-900 px-6 py-4 bg-slate-100/80 border-b border-slate-200">
-                  {branch === '__default__' ? t('schedule.unknownBranch') : branch}
-                </h2>
+                <div className="px-6 py-4 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                    {branch === '__default__' ? t('schedule.unknownBranch') : branch}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={() => openBranchDirections(branch)}
+                    className="shrink-0 inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                  >
+                    {t('addresses.directionsButton')}
+                  </button>
+                </div>
                 <div className="p-4 sm:p-6 space-y-8">
                   {DAYS.filter((d) => byBranch[branch][d]?.length).map((d) => (
                     <div key={d}>

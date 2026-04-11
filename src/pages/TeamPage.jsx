@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 import { getTeamMembers } from '../services/publicApi'
 import { useLanguage } from '../i18n/LanguageProvider'
@@ -70,6 +71,14 @@ export default function TeamPage() {
                   <div className="p-6">
                     <h2 className="text-xl font-bold text-slate-900">{member.name}</h2>
                     <p className="text-slate-600 font-medium mt-1">{member.role}</p>
+                    <div className="mt-3">
+                      <Link
+                        to={`/horarios?teacher=${member.id}`}
+                        className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                      >
+                        {t('team.seeAgenda')}
+                      </Link>
+                    </div>
 
                     {member.bio && (
                       <>

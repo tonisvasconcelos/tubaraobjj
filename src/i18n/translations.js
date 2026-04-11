@@ -162,6 +162,7 @@ export const translations = {
       'Conheça o Professor Márcio "Tubarão" e nossa equipe de instrutores. (Conteúdo em breve.)',
     'team.showDescription': 'Ver descrição',
     'team.hideDescription': 'Ocultar descrição',
+    'team.seeAgenda': 'Ver minha agenda',
 
     'addresses.title': 'Unidades',
     'addresses.mapSubtitle': 'Veja nossas unidades no mapa e trace a melhor rota para chegar.',
@@ -402,6 +403,7 @@ export const translations = {
       'Meet Professor Márcio "Tubarão" and our instructors. (Content coming soon.)',
     'team.showDescription': 'Show description',
     'team.hideDescription': 'Hide description',
+    'team.seeAgenda': 'See my schedule',
 
     'addresses.title': 'Locations',
     'addresses.mapSubtitle': 'See our locations on the map and get directions to each branch.',
@@ -643,6 +645,7 @@ export const translations = {
       'Conoce al Profesor Márcio "Tubarão" y a nuestros instructores. (Contenido próximamente.)',
     'team.showDescription': 'Ver descripción',
     'team.hideDescription': 'Ocultar descripción',
+    'team.seeAgenda': 'Ver mi agenda',
 
     'addresses.title': 'Sedes',
     'addresses.mapSubtitle': 'Consulta nuestras sedes en el mapa y obtén la mejor ruta para llegar.',
