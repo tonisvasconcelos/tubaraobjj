@@ -2,11 +2,23 @@ import { useState, useEffect } from 'react'
 import { admin, uploadFile } from '../../services/adminApi'
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react'
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim())
+}
+
 export default function TeamManage() {
   const [list, setList] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
-  const [form, setForm] = useState({ name: '', role: '', bio: '', photo_url: '', sort_order: 0, is_published: true })
+  const [form, setForm] = useState({
+    name: '',
+    role: '',
+    email: '',
+    bio: '',
+    photo_url: '',
+    sort_order: 0,
+    is_published: true,
+  })
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
 
@@ -27,7 +39,15 @@ export default function TeamManage() {
 
   const openNew = () => {
     setEditing(null)
-    setForm({ name: '', role: '', bio: '', photo_url: '', sort_order: list.length, is_published: true })
+    setForm({
+      name: '',
+      role: '',
+      email: '',
+      bio: '',
+      photo_url: '',
+      sort_order: list.length,
+      is_published: true,
+    })
   }
 
   const openEdit = (row) => {
@@ -35,6 +55,7 @@ export default function TeamManage() {
     setForm({
       name: row.name || '',
       role: row.role || '',
+      email: row.email || '',
       bio: row.bio || '',
       photo_url: row.photo_url || '',
       sort_order: row.sort_order ?? 0,
@@ -57,12 +78,22 @@ export default function TeamManage() {
   }
 
   const save = async () => {
+    const email = String(form.email || '').trim()
+    if (email && !isValidEmail(email)) {
+      alert('Informe um e-mail válido para o professor.')
+      return
+    }
+
     setSaving(true)
     try {
+      const payload = {
+        ...form,
+        email,
+      }
       if (editing) {
-        await admin.team.update(editing.id, form)
+        await admin.team.update(editing.id, payload)
       } else {
-        await admin.team.create(form)
+        await admin.team.create(payload)
       }
       setEditing(null)
       load()
@@ -103,6 +134,13 @@ export default function TeamManage() {
               placeholder="Função (ex: Professor, Instrutor)"
               value={form.role}
               onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg"
+            />
+            <input
+              type="email"
+              placeholder="E-mail do professor (para notificações)"
+              value={form.email}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full px-3 py-2 border border-slate-200 rounded-lg"
             />
             <textarea
@@ -160,6 +198,7 @@ export default function TeamManage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-900">{row.name}</p>
                     <p className="text-sm text-slate-500">{row.role}</p>
+                    {row.email ? <p className="text-xs text-slate-500">{row.email}</p> : null}
                   </div>
                   <button type="button" onClick={() => openEdit(row)} className="p-2 text-slate-600 hover:text-slate-900">
                     <Pencil className="w-4 h-4" />

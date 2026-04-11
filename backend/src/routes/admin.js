@@ -46,6 +46,18 @@ function parseOptionalId(value) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : NaN
 }
 
+function normalizeEmail(value, { required = false } = {}) {
+  const normalized = String(value || '').trim().toLowerCase()
+  if (!normalized) {
+    if (required) throw new Error('E-mail é obrigatório')
+    return null
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    throw new Error('E-mail inválido')
+  }
+  return normalized.slice(0, 255)
+}
+
 const SCHEDULE_TARGET_PUBLIC = new Set(['unisex', 'female_only'])
 
 function normalizeTargetPublic(value) {
@@ -71,6 +83,55 @@ router.post('/upload', upload.single('file'), async (req, res) => {
   } catch (e) {
     console.error(e)
     return res.status(500).json({ error: 'Falha no upload' })
+  }
+})
+
+// ----- Training schedules (Horários) -----
+router.get('/academy-settings', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, business_name, main_contact_email
+       FROM academy_settings
+       ORDER BY id ASC
+       LIMIT 1`
+    )
+    if (result.rows.length > 0) return res.json(result.rows[0])
+    const inserted = await pool.query(
+      `INSERT INTO academy_settings (business_name, main_contact_email)
+       VALUES ($1, $2)
+       RETURNING id, business_name, main_contact_email`,
+      ['GFTeam Tubarão', null]
+    )
+    res.json(inserted.rows[0])
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
+  }
+})
+
+router.put('/academy-settings', async (req, res) => {
+  try {
+    const businessName = String(req.body?.business_name || '').trim().slice(0, 255) || null
+    let mainContactEmail
+    try {
+      mainContactEmail = normalizeEmail(req.body?.main_contact_email)
+    } catch (error) {
+      return res.status(400).json({ error: error.message || 'E-mail inválido' })
+    }
+    const upsert = await pool.query(
+      `INSERT INTO academy_settings (id, business_name, main_contact_email)
+       VALUES (1, $1, $2)
+       ON CONFLICT (id)
+       DO UPDATE SET business_name = EXCLUDED.business_name,
+                     main_contact_email = EXCLUDED.main_contact_email,
+                     updated_at = NOW()
+       RETURNING id, business_name, main_contact_email`,
+      [businessName, mainContactEmail]
+    )
+    res.json(upsert.rows[0])
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ error: 'Erro no servidor' })
   }
 })
 
@@ -236,11 +297,25 @@ router.get('/team-members', async (req, res) => {
 
 router.post('/team-members', async (req, res) => {
   try {
-    const { name, role, bio, photo_url, sort_order, is_published } = req.body || {}
+    const { name, role, email, bio, photo_url, sort_order, is_published } = req.body || {}
+    let emailNormalized
+    try {
+      emailNormalized = normalizeEmail(email)
+    } catch (error) {
+      return res.status(400).json({ error: error.message || 'E-mail inválido' })
+    }
     const r = await pool.query(
-      `INSERT INTO team_members (name, role, bio, photo_url, sort_order, is_published)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [name || '', role || '', bio || null, photo_url || null, sort_order ?? 0, is_published !== false]
+      `INSERT INTO team_members (name, role, email, bio, photo_url, sort_order, is_published)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        name || '',
+        role || '',
+        emailNormalized,
+        bio || null,
+        photo_url || null,
+        sort_order ?? 0,
+        is_published !== false,
+      ]
     )
     res.status(201).json(r.rows[0])
   } catch (e) {
@@ -252,11 +327,26 @@ router.post('/team-members', async (req, res) => {
 router.put('/team-members/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10)
-    const { name, role, bio, photo_url, sort_order, is_published } = req.body || {}
+    const { name, role, email, bio, photo_url, sort_order, is_published } = req.body || {}
+    let emailNormalized
+    try {
+      emailNormalized = normalizeEmail(email)
+    } catch (error) {
+      return res.status(400).json({ error: error.message || 'E-mail inválido' })
+    }
     const r = await pool.query(
-      `UPDATE team_members SET name = $1, role = $2, bio = $3, photo_url = $4, sort_order = $5, is_published = $6, updated_at = NOW()
-       WHERE id = $7 RETURNING *`,
-      [name ?? '', role ?? '', bio ?? null, photo_url ?? null, sort_order ?? 0, is_published !== false, id]
+      `UPDATE team_members SET name = $1, role = $2, email = $3, bio = $4, photo_url = $5, sort_order = $6, is_published = $7, updated_at = NOW()
+       WHERE id = $8 RETURNING *`,
+      [
+        name ?? '',
+        role ?? '',
+        emailNormalized,
+        bio ?? null,
+        photo_url ?? null,
+        sort_order ?? 0,
+        is_published !== false,
+        id,
+      ]
     )
     if (r.rows.length === 0) return res.status(404).json({ error: 'Não encontrado' })
     res.json(r.rows[0])

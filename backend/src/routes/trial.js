@@ -1,6 +1,7 @@
 import express from 'express'
 import pool from '../db/pool.js'
 import { rateLimit } from '../middleware/rateLimit.js'
+import { notifyTrialBooking } from '../services/trialNotificationService.js'
 
 const router = express.Router()
 const TRIAL_CLASS_TYPES = new Set(['experimental_group', 'private_class'])
@@ -429,6 +430,20 @@ router.post('/private-request', rateLimit({ windowMs: 60_000, max: 8 }), async (
 
     await client.query('COMMIT')
 
+    try {
+      await notifyTrialBooking('private_request', {
+        eventId: `lead-${lead.rows[0].id}`,
+        branchName: branch.rows[0].name,
+        name: String(name).trim().slice(0, 255),
+        email: String(email).trim().toLowerCase().slice(0, 255),
+        phone: String(phone).trim().slice(0, 100),
+        startsAt: `${dateText}T${timeText}:00-03:00`,
+        notes: normalizedNotes || null,
+      })
+    } catch (notifyError) {
+      console.error('[trial/private-request][notify]', notifyError)
+    }
+
     res.status(201).json({
       message: 'Solicitação de aula experimental privada registrada com sucesso.',
       leadId: lead.rows[0].id,
@@ -462,9 +477,13 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
     await client.query('BEGIN')
 
     const slotResult = await client.query(
-      `SELECT id, branch_id, starts_at, ends_at, capacity, is_published, is_cancelled
-       FROM trial_slots
-       WHERE id = $1
+      `SELECT ts.id, ts.branch_id, ts.starts_at, ts.ends_at, ts.capacity, ts.is_published, ts.is_cancelled,
+              b.name AS branch_name,
+              tm.name AS instructor_name, tm.email AS instructor_email
+       FROM trial_slots ts
+       LEFT JOIN branches b ON b.id = ts.branch_id
+       LEFT JOIN team_members tm ON tm.id = ts.team_member_id
+       WHERE ts.id = $1
        FOR UPDATE`,
       [Number(trialSlotId)]
     )
@@ -565,6 +584,24 @@ router.post('/reservations', rateLimit({ windowMs: 60_000, max: 8 }), async (req
     }
 
     await client.query('COMMIT')
+
+    try {
+      await notifyTrialBooking('reservation', {
+        eventId: `reservation-${reservation.rows[0].id}`,
+        branchName: slot.branch_name,
+        name: String(name).trim().slice(0, 255),
+        email: String(email).trim().toLowerCase().slice(0, 255),
+        phone: String(phone).trim().slice(0, 100),
+        startsAt: slot.starts_at,
+        endsAt: slot.ends_at,
+        instructorName: slot.instructor_name,
+        instructorEmail: slot.instructor_email,
+        notes: notes ? String(notes).trim().slice(0, 4000) : null,
+      })
+    } catch (notifyError) {
+      console.error('[trial/reservations][notify]', notifyError)
+    }
+
     res.status(201).json({
       message: 'Aula experimental agendada com sucesso.',
       reservation: reservation.rows[0],

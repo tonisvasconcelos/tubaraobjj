@@ -39,6 +39,10 @@ function toValidCoordinatePair(branch) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
   if (latitude < -90 || latitude > 90) return null
   if (longitude < -180 || longitude > 180) return null
+  // This site only operates in Brazil. Ignore misplaced coordinates so
+  // the map doesn't jump to unrelated regions (e.g., Gulf of Guinea).
+  if (latitude < -35 || latitude > 6) return null
+  if (longitude < -75 || longitude > -30) return null
   return [latitude, longitude]
 }
 

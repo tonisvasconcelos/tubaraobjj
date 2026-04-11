@@ -41,6 +41,23 @@ export async function uploadFile(file) {
 
 // CRUD helpers
 export const admin = {
+  academySettings: {
+    get: async () => {
+      const r = await authFetch('/api/admin/academy-settings')
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao carregar configurações da academia')
+      return data
+    },
+    update: async (body) => {
+      const r = await authFetch('/api/admin/academy-settings', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao salvar configurações da academia')
+      return data
+    },
+  },
   team: {
     list: () => authFetch('/api/admin/team-members').then((r) => r.json()),
     create: (body) => authFetch('/api/admin/team-members', { method: 'POST', body: JSON.stringify(body) }).then((r) => r.json()),

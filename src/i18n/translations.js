@@ -214,6 +214,11 @@ export const translations = {
     'schedule.filter.clear': 'Limpar filtros',
     'schedule.emptyFiltered':
       'Nenhum horário corresponde aos filtros. Ajuste ou limpe os filtros para ver mais resultados.',
+    'schedule.share.button': 'Compartilhar',
+    'schedule.share.title': 'Agenda de aulas GFTeam Tubarão',
+    'schedule.share.call': 'Vem treinar Jiu-Jitsu com a gente. Agende sua aula experimental!',
+    'schedule.share.downloadFallback': 'Imagem da aula gerada. Compartilhe no Instagram, WhatsApp ou onde preferir.',
+    'schedule.share.error': 'Não foi possível gerar o card de compartilhamento.',
 
     'footer.sendMessage': 'Enviar mensagem',
     'footer.placeholder.name': 'Nome',
@@ -454,6 +459,11 @@ export const translations = {
     'schedule.filter.clear': 'Clear filters',
     'schedule.emptyFiltered':
       'No classes match these filters. Adjust or clear filters to see more.',
+    'schedule.share.button': 'Share',
+    'schedule.share.title': 'GFTeam Tubarão class schedule',
+    'schedule.share.call': 'Come train martial arts with us. Book your trial class!',
+    'schedule.share.downloadFallback': 'Class image generated. Share it on Instagram, WhatsApp, or any social app.',
+    'schedule.share.error': 'Could not generate the share card.',
 
     'footer.sendMessage': 'Send a message',
     'footer.placeholder.name': 'Name',
@@ -697,6 +707,11 @@ export const translations = {
     'schedule.filter.clear': 'Quitar filtros',
     'schedule.emptyFiltered':
       'Ningún horario coincide con los filtros. Ajusta o quita los filtros para ver más.',
+    'schedule.share.button': 'Compartir',
+    'schedule.share.title': 'Agenda de clases GFTeam Tubarão',
+    'schedule.share.call': 'Ven a entrenar artes marciales con nosotros. ¡Reserva tu clase de prueba!',
+    'schedule.share.downloadFallback': 'Imagen de clase generada. Compártela en Instagram, WhatsApp o donde prefieras.',
+    'schedule.share.error': 'No se pudo generar la tarjeta para compartir.',
 
     'footer.sendMessage': 'Enviar mensaje',
     'footer.placeholder.name': 'Nombre',

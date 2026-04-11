@@ -14,6 +14,7 @@ import StudentMessagesManage from './StudentMessagesManage'
 import AnalyticsManage from './AnalyticsManage'
 import WebsiteTermsManage from './WebsiteTermsManage'
 import MedicalQuestionnaireManage from './MedicalQuestionnaireManage'
+import AcademySettingsManage from './AcademySettingsManage'
 
 const SECTIONS = {
   team: TeamManage,
@@ -30,6 +31,7 @@ const SECTIONS = {
   'student-messages': StudentMessagesManage,
   'website-terms': WebsiteTermsManage,
   'medical-questionnaire': MedicalQuestionnaireManage,
+  'academy-settings': AcademySettingsManage,
 }
 
 export default function AdminSection() {

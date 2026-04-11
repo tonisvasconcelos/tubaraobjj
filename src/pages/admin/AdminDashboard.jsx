@@ -16,6 +16,7 @@ import {
   X,
   BarChart3,
   ShieldCheck,
+  Settings,
 } from 'lucide-react'
 
 const navItems = [
@@ -26,6 +27,7 @@ const navItems = [
   { path: 'students', label: 'Alunos', icon: UserCircle2 },
   { path: 'plans', label: 'Planos', icon: ClipboardList },
   { path: 'trial', label: 'Aula Experimental', icon: Calendar },
+  { path: 'academy-settings', label: 'Academy Settings', icon: Settings },
   { path: 'website-terms', label: 'Termos do Site', icon: ShieldCheck },
   { path: 'medical-questionnaire', label: 'Questionário Médico', icon: ClipboardList },
   { path: 'analytics', label: 'Analytics', icon: BarChart3 },
