@@ -44,12 +44,69 @@ const CLASS_TYPE_OPTIONS = [
   { value: 'experimental_group', label: 'Experimental Class Group' },
   { value: 'private_class', label: 'Private Class' },
 ]
+const MAX_FALLBACK_OCCURRENCES = 180
 
 function formatDateTimeInput(dateValue) {
   if (!dateValue) return ''
   const date = new Date(dateValue)
   if (Number.isNaN(date.getTime())) return ''
   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+}
+
+function formatDatePart(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function buildRecurringFallbackPayloads(form) {
+  const startDate = new Date(`${form.range_start}T00:00:00`)
+  const endDate = new Date(`${form.range_end}T00:00:00`)
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw new Error('Período inválido para criar a série.')
+  }
+  if (endDate < startDate) {
+    throw new Error('A data final deve ser maior ou igual à data inicial.')
+  }
+
+  const selectedWeekdays = new Set(form.weekdays)
+  const payloads = []
+  const cursor = new Date(startDate)
+  while (cursor <= endDate) {
+    if (selectedWeekdays.has(cursor.getDay())) {
+      const datePart = formatDatePart(cursor)
+      const startsAt = new Date(`${datePart}T${form.start_time}:00`)
+      const endsAt = new Date(`${datePart}T${form.end_time}:00`)
+      if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+        throw new Error('Hora de início/fim inválida.')
+      }
+      if (endsAt <= startsAt) {
+        throw new Error('A hora final deve ser maior que a hora inicial.')
+      }
+      payloads.push({
+        branch_id: Number(form.branch_id),
+        team_member_id: form.team_member_id === '' ? null : Number(form.team_member_id),
+        class_type: form.class_type || 'experimental_group',
+        title: form.title || null,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        capacity: Math.max(Number(form.capacity) || 1, 1),
+        is_published: form.is_published !== false,
+        is_cancelled: form.is_cancelled === true,
+      })
+      if (payloads.length > MAX_FALLBACK_OCCURRENCES) {
+        throw new Error(
+          `A série excede ${MAX_FALLBACK_OCCURRENCES} ocorrências. Reduza o período ou dias selecionados.`
+        )
+      }
+    }
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  if (!payloads.length) {
+    throw new Error('Nenhuma ocorrência encontrada para os dias selecionados no período informado.')
+  }
+  return payloads
 }
 
 export default function TrialBookingsManage() {
@@ -168,6 +225,10 @@ export default function TrialBookingsManage() {
       alert('Selecione pelo menos um dia da semana.')
       return
     }
+    if (!recurringForm.start_time || !recurringForm.end_time) {
+      alert('Informe hora inicial e final da série.')
+      return
+    }
     setSaving(true)
     try {
       const result = await admin.trial.createSlotsBulk({
@@ -192,6 +253,26 @@ export default function TrialBookingsManage() {
       setRecurringForm(emptyRecurringForm)
       await load()
     } catch (error) {
+      if (error?.status === 404) {
+        try {
+          const payloads = buildRecurringFallbackPayloads(recurringForm)
+          let created = 0
+          for (const payload of payloads) {
+            await admin.trial.createSlot(payload)
+            created += 1
+          }
+          alert(`Série criada: ${created} horário(s).`)
+          setRecurringForm(emptyRecurringForm)
+          await load()
+          return
+        } catch (fallbackError) {
+          alert(
+            fallbackError.message ||
+              'Não foi possível criar a série no modo de compatibilidade. Verifique o backend.'
+          )
+          return
+        }
+      }
       alert(error.message || 'Erro ao criar série')
     } finally {
       setSaving(false)

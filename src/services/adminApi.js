@@ -163,7 +163,11 @@ export const admin = {
     createSlotsBulk: async (body) => {
       const r = await authFetch('/api/admin/trial-slots/bulk', { method: 'POST', body: JSON.stringify(body) })
       const data = await r.json().catch(() => ({}))
-      if (!r.ok) throw new Error(data.error || 'Erro ao criar série de horários')
+      if (!r.ok) {
+        const error = new Error(data.error || 'Erro ao criar série de horários')
+        error.status = r.status
+        throw error
+      }
       return data
     },
     updateSlot: async (id, body) => {
