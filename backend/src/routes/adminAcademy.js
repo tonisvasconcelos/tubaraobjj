@@ -624,6 +624,16 @@ router.put('/trial-slots/:id', async (req, res) => {
   }
 })
 
+router.delete('/trial-slots/all', async (_req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM trial_slots')
+    res.json({ deleted: result.rowCount })
+  } catch (error) {
+    console.error('[admin-academy/trial-slots/delete-all]', error)
+    res.status(500).json({ error: 'Erro ao remover todos os horários de aula experimental' })
+  }
+})
+
 router.delete('/trial-slots/:id', async (req, res) => {
   try {
     const id = Number(req.params.id)

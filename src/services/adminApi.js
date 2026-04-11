@@ -182,6 +182,12 @@ export const admin = {
       const data = await r.json().catch(() => ({}))
       throw new Error(data.error || 'Erro ao remover horário')
     },
+    deleteAllSlots: async () => {
+      const r = await authFetch('/api/admin/trial-slots/all', { method: 'DELETE' })
+      const data = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(data.error || 'Erro ao remover todos os horários')
+      return data
+    },
     listReservations: () => authFetch('/api/admin/trial-reservations').then((r) => r.json()),
     updateReservation: async (id, body) => {
       const r = await authFetch(`/api/admin/trial-reservations/${id}`, {

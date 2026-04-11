@@ -8,6 +8,14 @@ function formatTime(t) {
   return String(t).slice(0, 5)
 }
 
+function initialsFromName(name) {
+  if (!name || typeof name !== 'string') return '?'
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
 const DAYS = [0, 1, 2, 3, 4, 5, 6]
 
 export default function SchedulePage() {
@@ -86,39 +94,72 @@ export default function SchedulePage() {
                       <h3 className="text-lg font-semibold text-slate-800 mb-3">
                         {t(`schedule.day.${d}`)}
                       </h3>
-                      <ul className="space-y-3">
-                        {byBranch[branch][d].map((row) => (
-                          <li
-                            key={row.id}
-                            className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-4 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-3"
-                          >
-                            <div className="font-semibold text-slate-900 tabular-nums shrink-0">
-                              {formatTime(row.start_time)} – {formatTime(row.end_time)}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-slate-800">{row.training_type}</p>
-                              {row.team_member_name ? (
-                                <div className="mt-2 flex items-center gap-2">
-                                  {row.team_member_photo_url ? (
-                                    <img
-                                      src={row.team_member_photo_url}
-                                      alt={row.team_member_name}
-                                      className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                                      loading="lazy"
-                                    />
+                      <ul className="space-y-4">
+                        {byBranch[branch][d].map((row) => {
+                          const hasInstructor = Boolean(row.team_member_name?.trim())
+                          return (
+                            <li
+                              key={row.id}
+                              className="rounded-2xl border border-slate-200/90 bg-gradient-to-br from-white to-slate-50/90 shadow-md shadow-slate-900/5 overflow-hidden"
+                            >
+                              <div className="p-4 sm:p-5">
+                                <div
+                                  className={`flex gap-4 sm:gap-5 ${hasInstructor ? 'sm:items-center' : 'sm:items-start'}`}
+                                >
+                                  {hasInstructor ? (
+                                    <div className="shrink-0">
+                                      {row.team_member_photo_url ? (
+                                        <img
+                                          src={row.team_member_photo_url}
+                                          alt={row.team_member_name}
+                                          className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white shadow-lg border border-slate-200/80"
+                                          loading="lazy"
+                                        />
+                                      ) : (
+                                        <div
+                                          className="w-[4.5rem] h-[4.5rem] sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xl sm:text-2xl font-bold tracking-tight shadow-lg ring-4 ring-white border border-slate-600/30"
+                                          aria-label={row.team_member_name}
+                                          role="img"
+                                        >
+                                          {initialsFromName(row.team_member_name)}
+                                        </div>
+                                      )}
+                                    </div>
                                   ) : null}
-                                  <p className="text-sm text-slate-600">
-                                    {t('schedule.instructorPrefix')} {row.team_member_name}
-                                    {row.team_member_role ? ` — ${row.team_member_role}` : ''}
-                                  </p>
+                                  <div className="flex-1 min-w-0 space-y-2">
+                                    <h4 className="text-xl sm:text-2xl font-bold text-slate-900 leading-snug tracking-tight">
+                                      {row.training_type}
+                                    </h4>
+                                    {hasInstructor ? (
+                                      <p className="text-base sm:text-lg font-semibold text-slate-800">
+                                        <span className="text-slate-500 font-medium not-italic">
+                                          {t('schedule.instructorPrefix')}{' '}
+                                        </span>
+                                        <span className="text-slate-900">{row.team_member_name}</span>
+                                        {row.team_member_role ? (
+                                          <span className="font-normal text-slate-600 text-base sm:text-lg">
+                                            {' '}
+                                            · {row.team_member_role}
+                                          </span>
+                                        ) : null}
+                                      </p>
+                                    ) : null}
+                                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                                      <span className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white tabular-nums shadow-sm">
+                                        {formatTime(row.start_time)} – {formatTime(row.end_time)}
+                                      </span>
+                                    </div>
+                                    {row.notes ? (
+                                      <p className="text-sm sm:text-base text-slate-600 pt-1 whitespace-pre-wrap leading-relaxed border-t border-slate-200/80 mt-3 pt-3">
+                                        {row.notes}
+                                      </p>
+                                    ) : null}
+                                  </div>
                                 </div>
-                              ) : null}
-                              {row.notes ? (
-                                <p className="text-sm text-slate-600 mt-1 whitespace-pre-wrap">{row.notes}</p>
-                              ) : null}
-                            </div>
-                          </li>
-                        ))}
+                              </div>
+                            </li>
+                          )
+                        })}
                       </ul>
                     </div>
                   ))}

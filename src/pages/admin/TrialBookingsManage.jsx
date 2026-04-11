@@ -258,6 +258,28 @@ export default function TrialBookingsManage() {
     }
   }
 
+  async function removeAllSlots() {
+    const n = slots.length
+    if (n === 0) return
+    if (
+      !confirm(
+        `Excluir TODOS os ${n} horário(s) cadastrados? As reservas vinculadas a esses horários também serão removidas. Esta ação não pode ser desfeita.`
+      )
+    ) {
+      return
+    }
+    setSaving(true)
+    try {
+      await admin.trial.deleteAllSlots()
+      openNewSlot()
+      await load()
+    } catch (error) {
+      alert(error.message || 'Erro ao excluir horários')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function updateReservationStatus(reservation, status) {
     try {
       await admin.trial.updateReservation(reservation.id, { status })
@@ -644,6 +666,19 @@ export default function TrialBookingsManage() {
                 </li>
               ))}
             </ul>
+          )}
+          {!loading && slots.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={removeAllSlots}
+                disabled={saving}
+                className="w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-lg border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                Excluir todos os horários
+              </button>
+            </div>
           )}
         </section>
       </div>
